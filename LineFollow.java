@@ -79,6 +79,9 @@ public class LineFollow {
 			Motor.B.forward();
 			Motor.C.forward();
 			
+			
+			//LCD.drawString("Hello World", 0, 4);
+			//Delay.msDelay(50000);
 		}// Close Main Loop
 		//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	}// Close Java Main 
