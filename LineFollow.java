@@ -35,9 +35,13 @@ public class LineFollow {
 		//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		//Main Loop
 		while(!Button.ESCAPE.isDown()){ //loop until you press escape
+			//Update sensors
 			modeLeft.fetchSample(lightLeft,0);   // Update sensor with new data
 			modeRight.fetchSample(lightRight,0); // Update sensor with new data
 			ussProvider.fetchSample(sampleDistance, 0); // Update sensor with new data
+			
+			
+			//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			//Turn Right
 			if(lightRight[0] < maxBlack){ //if right sensor sees black: ....
 				// set speed of wheels so that the robot turns right
@@ -70,9 +74,16 @@ public class LineFollow {
 					modeLeft.fetchSample(lightLeft,0); 
 					modeRight.fetchSample(lightRight,0);
 				}
-				
+			}
+			//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+			
+			if(sampleDistance[0] < 10){
+				//Do something when ultrasonic sensor is less than 10
+				//LCD.drawString("Hello World", 0, 4);
+				//Delay.msDelay(50000);
 			}
 			
+			//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			//set to default speed and continue going forward
 			Motor.B.setSpeed(defualtSpeed);
 			Motor.C.setSpeed(defualtSpeed);
@@ -80,8 +91,7 @@ public class LineFollow {
 			Motor.C.forward();
 			
 			
-			//LCD.drawString("Hello World", 0, 4);
-			//Delay.msDelay(50000);
+			
 		}// Close Main Loop
 		//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	}// Close Java Main 
