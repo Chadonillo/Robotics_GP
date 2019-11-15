@@ -62,7 +62,7 @@ public class LineFollow {
 
 		double  maxBlack = 0.2; //the max value that black can be
 
-		int defualtSpeed = 500; //robots default straight line speed
+		int defualtSpeed = 300; //robots default straight line speed
 
 		
 
