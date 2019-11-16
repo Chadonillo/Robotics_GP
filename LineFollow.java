@@ -208,14 +208,11 @@ public class LineFollow {
 
 			Motor.C.forward();
 
-			
-
-			
-
-			
-
 		}// Close Main Loop
-
+		
+		colorSensorLeft.close();
+		colorSensorRight.close();
+		ultrasonicSensor.close();
 		//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	}// Close Java Main 
