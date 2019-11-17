@@ -13,6 +13,9 @@ import lejos.robotics.chassis.*;  // https://lejos.sourceforge.io/ev3/docs/lejos
 import lejos.robotics.navigation.MovePilot; // http://www.lejos.org/ev3/docs/lejos/robotics/navigation/MovePilot.html
 
 public class newThings {
+    static boolean oppositeSigns(int x, int y) { 
+        return ((x ^ y) < 0); 
+    }
 	public static void main(String[] args){
 		// Set up the two light sensors
 		EV3ColorSensor colorSensorLeft = new EV3ColorSensor(SensorPort.S1); //left colour sensor name
@@ -59,7 +62,18 @@ public class newThings {
 			ussProvider.fetchSample(sampleDistance, 0); // Update sensor with new data
 			
 			error = (lightRight[0] - lightLeft[0])*100 ;
-			integral += error; //update accumulated error 
+			
+			/*Anti Wind-Up
+			 *Zero the integral, set the variable integral equal to zero,
+			 *every time the error is zero or the error changes sign
+			*/
+			if (Math.abs(error) <= 1 || oppositeSigns((int)error, (int)lastError)){
+				integral=0;
+			}
+			else{
+				integral = ((2/3) * integral) + error; //update accumulated error, Dampen by multiplying by 2/3
+			}
+			
 			derivative = error - lastError;
 			
 			// sample k values 1.2, 0.012, 200
