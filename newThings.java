@@ -37,7 +37,7 @@ public class newThings {
 		MovePilot pilot = new MovePilot(chassis);
 		
 	
-		//PID setup
+		//PID setup Line following
 		double integral = 0; //accumulated error
 		double derivative = 0; //used to predict next error
 		double error = 0;
@@ -47,6 +47,16 @@ public class newThings {
 		double ki = 0; //
 		double kd = 0; //
 		
+		//PID setup obstacle avoidance
+		double integralOA = 0; //accumulated error
+		double derivativeOA = 0; //used to predict next error
+		double errorOA = 0;
+		double lastErrorOA = 0; //store the last error to be used to calculate the derivative
+		
+		double kpOA = 1; //constant to determine how sharp to adjust back to line
+		double kiOA = 0; //
+		double kdOA = 0; //
+				
 		double maxBlack = 0.2;
 		double obstacleDistance = 10;
 		
@@ -88,24 +98,35 @@ public class newThings {
 				pilot.travel(sampleDistance[0]*100 - obstacleDistance); // move backwards to make sure we are obstacle distance away from object
 				pilot.rotateRight();// turn robot right
 				Motor.A.rotate(-90);//turn sensor to look at obstacle
-				pilot.forward(); //start robot moving forward
+				
+				integralOA = 0; //accumulated error
+				derivativeOA = 0; //used to predict next error
+				errorOA = 0;
+				lastErrorOA = 0; //store the last error to be used to calculate the derivative
 				
 				//Update sensors
 				modeLeft.fetchSample(lightLeft,0);   // Update sensor with new data
 				modeRight.fetchSample(lightRight,0); // Update sensor with new data
 				ussProvider.fetchSample(sampleDistance, 0); // Update sensor with new data
 				
+				pilot.forward(); //start robot moving forward
 				while (!(lightLeft[0] < maxBlack) && !(lightRight[0] < maxBlack) && !Button.ESCAPE.isDown()){
-					//robot is too far from obstacle
-					if (sampleDistance[0]*100 > obstacleDistance){
-						//robot turns left
-						pilot.rotate(1);
+					errorOA = sampleDistance[0]*100 - obstacleDistance;
+					
+					/*Anti Wind-Up
+					 *Zero the integral, set the variable integral equal to zero,
+					 *every time the error is zero or the error changes sign
+					*/
+					if (Math.abs(errorOA) <= 1 || oppositeSigns((int)errorOA, (int)lastErrorOA)){
+						integralOA=0;
 					}
-					//robot is too close from obstacle
-					else if (sampleDistance[0]*100 < obstacleDistance){
-						//robot turns right
-						pilot.rotate(-1);
+					else{
+						integralOA = ((2/3) * integralOA) + errorOA; //update accumulated error, Dampen by multiplying by 2/3
 					}
+					derivativeOA = errorOA - lastErrorOA;
+					pilot.rotate((errorOA * kpOA) + (integralOA * kiOA) + (derivativeOA * kdOA)); // use this value for steering 
+					
+					lastErrorOA = errorOA;
 					
 					//Update sensors
 					modeLeft.fetchSample(lightLeft,0);   // Update sensor with new data
