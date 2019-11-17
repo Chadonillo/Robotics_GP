@@ -47,6 +47,8 @@ public class newThings {
 		double maxBlack = 0.2;
 		double obstacleDistance = 10;
 		
+		pilot.setLinearSpeed(10); // cm/s
+		pilot.setAngularSpeed(10); //speed of .rotate()
 		
 		pilot.forward();
 		while(!Button.ESCAPE.isDown()){
