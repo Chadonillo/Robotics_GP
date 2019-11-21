@@ -1,6 +1,7 @@
 package a;
 
 import lejos.hardware.Button;
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.Motor;
 
 import lejos.hardware.port.SensorPort;
@@ -17,7 +18,13 @@ public class PID {
     static boolean oppositeSigns(int x, int y) { 
         return ((x ^ y) < 0); 
     }
-
+    
+    public static double calibrate (double min, double max, float val){
+    	double answer = (val-min)/(max-min);
+    	if(answer<0){answer = 0;}
+    	else if(answer>1){answer = 1;}
+    	return answer;
+    }
 	public static void main(String[] args){
 		// Set up the two light sensors
 		EV3ColorSensor colorSensorLeft = new EV3ColorSensor(SensorPort.S1); //left colour sensor name
@@ -44,9 +51,9 @@ public class PID {
 		double error = 0;
 		double lastError = 0; //store the last error to be used to calculate the derivative
 
-		double kp = 1.2; //constant to determine how sharp to adjust back to line
-		double ki = 0; //
-		double kd = 0; //
+		double kp = 3; //constant to determine how sharp to adjust back to line
+		double ki = 5; //
+		double kd = 400; //
 
 		//PID setup obstacle avoidance
 		double integralOA = 0; //accumulated error
@@ -59,7 +66,7 @@ public class PID {
 		double kdOA = 0; //
 
 		
-		double maxBlack = 0.2;
+		double maxBlack = 0.5;
 		double obstacleDistance = 15;
 
 		double pidValue = 0;
@@ -74,8 +81,15 @@ public class PID {
 			modeLeft.fetchSample(lightLeft,0);          // Update sensor with new data
 			modeRight.fetchSample(lightRight,0);        // Update sensor with new data
 			ussProvider.fetchSample(sampleDistance, 0); // Update sensor with new data
-
-			error = (lightLeft[0] -lightRight[0])*100;
+			/*
+			if(calibrate(0.05, 0.75, lightLeft[0]) == 1.1 && calibrate(0.05, 0.6, lightRight[0]) == 1.1){
+				while(calibrate(0.05f, 0.75f, lightLeft[0]) > maxBlack && calibrate(0.05f, 0.6f, lightRight[0]) > maxBlack && !Button.ESCAPE.isDown()){
+					LCD.drawString("Im Turning", 0, 6);
+				}
+				LCD.clear();
+			}*/
+			
+			error = (calibrate(0.05, 0.75, lightLeft[0]) - calibrate(0.05, 0.6, lightRight[0]))*100;
 
 			/* Anti Wind-Up
 			 * Zero the integral, set the variable integral equal to zero,
@@ -91,19 +105,45 @@ public class PID {
 
 			// sample k values 1.2, 0.012, 200
 			pidValue = (error * kp) + (integral * ki) + (derivative * kd);
+			
 			if (Math.abs(pidValue)>baseSpeed){
 				if(pidValue>=0){
-					pidValue=baseSpeed;
+					Motor.B.forward();
+					Motor.C.backward();
+					if(pidValue >100){
+						Motor.B.setSpeed((int)(baseSpeed + 100)); // use this value for steering
+						Motor.C.setSpeed((int)(100 - baseSpeed));
+					}
+					else {
+						Motor.B.setSpeed((int)(baseSpeed + pidValue)); // use this value for steering
+						Motor.C.setSpeed((int)(pidValue - baseSpeed));
+					}
+					
 				}
 				else{
-					pidValue=-baseSpeed;
+					Motor.B.backward();
+					Motor.C.forward();
+					if(pidValue >100){
+						Motor.B.setSpeed((int)(100 + baseSpeed)); // use this value for steering
+						Motor.C.setSpeed((int)(baseSpeed - 100));
+					}
+					else {
+						Motor.B.setSpeed((int)(pidValue + baseSpeed)); // use this value for steering
+						Motor.C.setSpeed((int)(baseSpeed - pidValue));
+					}
 				}
 			}
-			Motor.B.setSpeed((int)(baseSpeed + pidValue)); // use this value for steering 
-			Motor.C.setSpeed((int)(baseSpeed - pidValue));
+			else{
+				Motor.B.forward();
+				Motor.C.forward();
+				Motor.B.setSpeed((int)(baseSpeed + pidValue)); // use this value for steering 
+				Motor.C.setSpeed((int)(baseSpeed - pidValue));
+			}
+			
+			
 			
 			lastError = error;
-
+			/*
 			//Obstacle Avoidance
 			//Do something when ultrasonic sensor is less than obstacleDistance
 			if(sampleDistance[0]*100 < obstacleDistance){
@@ -112,7 +152,7 @@ public class PID {
 				
 				pilot.rotate(35);// turn robot right
 				
-				Motor.A.rotate(-90);//turn sensor to look at obstacle
+				Motor.D.rotate(-90);//turn sensor to look at obstacle
 
 				integralOA = 0; //accumulated error
 				derivativeOA = 0; //used to predict next error
@@ -156,8 +196,9 @@ public class PID {
 					ussProvider.fetchSample(sampleDistance, 0); // Update sensor with new data
 
 				}
-				Motor.A.rotate(90, true);//turn sensor to look straight again, do not wait for motor to rotate
+				Motor.D.rotate(90, true);//turn sensor to look straight again, do not wait for motor to rotate
 			}
+			*/
 		}
 
 
