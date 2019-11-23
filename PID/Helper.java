@@ -1,0 +1,67 @@
+package a;
+
+import lejos.hardware.Button;
+import lejos.hardware.lcd.LCD;
+import lejos.utility.Delay;
+
+public class Helper {
+	public boolean oppositeSigns(int x, int y) { 
+        return ((x ^ y) < 0); 
+    }
+	
+	public float calibrate (float min, float max, float val){
+		float answer = (val-min)/(max-min);
+    	if(answer<0){answer = 0;}
+    	else if(answer>1){answer = 1;}
+    	return answer;
+    }
+    
+    public float increment (String name, float resolution, int screenPos){
+    	float input = 0;
+    	LCD.drawString(name + ": " + input+"      ", 0, screenPos);
+		LCD.clear(screenPos);
+		input += resolution;
+		LCD.drawString(name + ": " +input+"      ", 0, screenPos);
+    	return input;
+    }
+    
+    public float decrement (String name, float resolution, int screenPos){
+    	float input = 0;
+    	LCD.drawString(name + ": " + input+"      ", 0, screenPos);
+		LCD.clear(screenPos);
+		input -= resolution;
+		LCD.drawString(name + ": " +input+"      ", 0, screenPos);
+    	return input;
+    }
+    
+    public float inputLCD (String name, float resolution, int screenPos){
+    	float input = 0;
+    	LCD.drawString(name + ": " + input, 0, screenPos);
+		while(!Button.ENTER.isDown()){
+			if(Button.UP.isDown()){
+				LCD.clear(screenPos);
+				input += resolution;
+				input = (float) (Math.round(input * 100.0) / 100.0);
+				LCD.drawString(name + ": " +input, 0, screenPos);
+				Delay.msDelay(100);
+			}
+			if(Button.DOWN.isDown()){
+				LCD.clear(screenPos);
+				input -= resolution;
+				input = (float) (Math.round(input * 100.0) / 100.0);
+				LCD.drawString(name + ": " +input, 0, screenPos); 
+				Delay.msDelay(100);
+			}
+		}
+		Delay.msDelay(500);
+    	return input;
+    }
+    
+    public void resetTest (){
+    	LCD.clear();
+		LCD.drawString("To Quit", 0, 0);
+		LCD.drawString("Hold escape", 0, 1);
+		Delay.msDelay(2000);
+		LCD.clear();
+    }
+}
