@@ -20,6 +20,9 @@ public class Robot {
 	LinearCalibrationFilter  calibratorLeft  =  new LinearCalibrationFilter (modeLeft);
 	LinearCalibrationFilter  calibratorRight  =  new LinearCalibrationFilter (modeRight);
 
+	public float transform(float val){
+		return val+0.45f;
+	}
 	public void drive(float l, float r) {
 		Motor.B.setSpeed(Math.abs(l));
 		Motor.C.setSpeed(Math.abs(r));
@@ -42,37 +45,38 @@ public class Robot {
 
 	public float pollSensorLeft() {
 		calibratorLeft.fetchSample(sampleLeft, 0);
-		return sampleLeft[0];
+		return transform(sampleLeft[0]);
 	}
 	
 	public float pollSensorRight() {
 		calibratorRight.fetchSample(sampleRight, 0);
-		return sampleRight[0];
+		return transform(sampleRight[0]);
 	}
 	
 	public void calibrateSensors(){
-		calibratorLeft.setScaleCalibration(0, 1);
 		calibratorLeft.startCalibration();
-		LCD.drawString("Left Calibration", 0, 0);
+		LCD.drawString("Left Calibration", 0, 2);
 		while(!Button.ENTER.isDown()){
 			calibratorLeft.fetchSample (sampleLeft,  0);
 		}
 		calibratorLeft.stopCalibration();
 		
-		calibratorRight.setScaleCalibration(0, 1);
 		calibratorRight.startCalibration();
 		Delay.msDelay(1000);
-		LCD.drawString("Right Calibration", 0, 2);
+		LCD.drawString("Right Calibration", 0, 4);
 		while(!Button.ENTER.isDown()){
 			calibratorRight.fetchSample (sampleRight,  0);
 		}
 		calibratorRight.stopCalibration();
+		Delay.msDelay(500);
+		LCD.clear();
 	}
 
 	public void stop(){
 		Motor.B.stop();
 		Motor.C.stop();
 	}
+	
 	/*
 	public static void main(String[] args){
 		Robot wallz = new Robot();
@@ -81,11 +85,14 @@ public class Robot {
 		while(!Button.ESCAPE.isDown()){
 			wallz.modeLeft.fetchSample(wallz.sampleLeft, 0);
 			wallz.modeRight.fetchSample(wallz.sampleRight, 0);
-			LCD.drawString("Raw Left: " + Math.round(wallz.sampleLeft[0]*100) +"          ", 0, 2);
-			LCD.drawString("Raw Right: " + Math.round(wallz.sampleRight[0]*100) +"          ", 0, 3);
-			LCD.drawString("Left: " + Math.round(wallz.pollSensorLeft()*100) +"          ", 0, 5);
-			LCD.drawString("Right: " + Math.round(wallz.pollSensorRight()*100) +"          ", 0, 6);
+			
+			LCD.drawString("Raw Left: " + Math.round(wallz.sampleLeft[0]*100) +"          ", 0, 3);
+			LCD.drawString("Raw Right: " + Math.round(wallz.sampleRight[0]*100) +"          ", 0, 4);
+			
+			LCD.drawString("Left: " + Math.round(wallz.pollSensorLeft()*100) +"          ", 0, 6);
+			LCD.drawString("Right: " + Math.round(wallz.pollSensorRight()*100) +"          ", 0, 7);
 		}
 	}
 	*/
+	
 }

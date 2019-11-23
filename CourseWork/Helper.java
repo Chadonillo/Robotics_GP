@@ -5,6 +5,11 @@ import lejos.hardware.lcd.LCD;
 import lejos.utility.Delay;
 
 public class Helper {
+	public void bye(){
+		LCD.clear();
+		LCD.drawString("WALL Z", 5, 3);
+		Delay.msDelay(2000);
+	}
 	public boolean oppositeSigns(int x, int y) { 
         return ((x ^ y) < 0); 
     }

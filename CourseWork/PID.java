@@ -2,8 +2,10 @@ package a;
 import lejos.hardware.lcd.LCD;
 
 public class PID {
-	Helper util = new Helper();
-	Robot wallz = new Robot();
+	Helper util;
+	Robot wallz;
+	
+	
 	
 	//PID setup Line following
 	float error;
@@ -16,6 +18,10 @@ public class PID {
 	float ki = 0;
 	float kd = 0;
 	
+	public PID(Robot robot, Helper help){
+		wallz = robot;
+		util = help;
+	}
 	public void run(){
 		LCD.drawString("Left: " + Math.round(wallz.pollSensorLeft()*100) +"          ", 0, 5);
 		LCD.drawString("Right: " + Math.round(wallz.pollSensorRight()*100) +"          ", 0, 6);
