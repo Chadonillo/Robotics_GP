@@ -13,11 +13,11 @@ public class PID {
 	float lastError = 0; //store the last error to be used to calculate the derivative
 	float pidValue = 0;
 	
-	int baseSpeed = 200;
-	float kp = 1.7f;
-	float ki = 0;
-	float kd = 20;
-	float damping = 0.8f;
+	int baseSpeed = 250;
+	float kp = 2;
+	float ki = 0.3f;
+	float kd = 30;
+	float damping = 0.9f;
 	
 	public PID(Robot robot, Helper help){
 		wallz = robot;
@@ -26,7 +26,7 @@ public class PID {
 	public void run(){
 		LCD.drawString("Left: " + Math.round(wallz.pollSensorLeft()*100) +"          ", 0, 5);
 		LCD.drawString("Right: " + Math.round(wallz.pollSensorRight()*100) +"          ", 0, 6);
-		LCD.drawString("PID: " + pidValue +"          ", 0, 7);
+		//LCD.drawString("PID: " + pidValue +"          ", 0, 7);
 		error = (wallz.pollSensorLeft() - wallz.pollSensorRight())*100;
 		// Anti Wind-Up
 		if (Math.abs(error) <= 5 || util.oppositeSigns((int)error, (int)lastError)){
@@ -46,6 +46,6 @@ public class PID {
 		kp = util.inputLCD("Kp", 0.1f, kp, 1);
 		ki = util.inputLCD("Ki", 0.05f, ki, 2);
 		kd = util.inputLCD("Kd", 0.5f, kd, 3);
-		kd = util.inputLCD("damping", 0.01f, damping, 3);
+		damping = util.inputLCD("damping", 0.01f, damping,4 );
 	}
 }

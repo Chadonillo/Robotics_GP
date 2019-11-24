@@ -5,7 +5,9 @@ import lejos.hardware.motor.Motor;
 
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorMode;
+import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.LinearCalibrationFilter;
 import lejos.utility.Delay;
 
@@ -16,6 +18,11 @@ public class Robot {
 	public SensorMode modeRight = sensorRight.getRedMode();
 	public float[] sampleLeft = new float[modeLeft.sampleSize()];
 	public float[] sampleRight = new float[modeRight.sampleSize()];
+	
+	public EV3UltrasonicSensor ultraSonicSensor = new EV3UltrasonicSensor(SensorPort.S3);
+	public SampleProvider ussProvider = ultraSonicSensor.getDistanceMode();
+	public float[] sampleDistance = new float[ussProvider.sampleSize()];
+	
 	
 	LinearCalibrationFilter  calibratorLeft  =  new LinearCalibrationFilter (modeLeft);
 	LinearCalibrationFilter  calibratorRight  =  new LinearCalibrationFilter (modeRight);
@@ -42,6 +49,40 @@ public class Robot {
 			Motor.C.stop(true);
 		}
 	}
+	
+	public void turnLeft(){
+		this.drive(-300, 300);
+		Delay.msDelay(450);
+		this.stop();
+	}
+	
+	public void turnRight(){
+		this.drive(300, -300);
+		Delay.msDelay(450);
+		this.stop();
+	}
+	
+	public float getDistance(){
+		ussProvider.fetchSample(sampleDistance, 0);
+		return sampleDistance[0]*100;
+	}
+	
+	public void turnHeadLeft(){
+		Motor.D.rotate(-110);
+	}
+	
+	public void turnHeadRight(){
+		Motor.D.rotate(110);
+	}
+	
+	public void turnTillDistance(int distance){
+		this.turnHeadLeft();
+		this.drive(100, -100);
+		while (this.getDistance()>distance+10 && !Button.ENTER.isDown()){
+			;
+		}
+		this.stop();
+	}
 
 	public float pollSensorLeft() {
 		calibratorLeft.fetchSample(sampleLeft, 0);
@@ -59,8 +100,10 @@ public class Robot {
 		LCD.drawString("Press Enter To", 0, 2);
 		LCD.drawString("Start Calibration", 0, 4);
 		Button.waitForAnyPress();
+		Delay.msDelay(500);
 		LCD.clear();
 		
+		this.drive(50,50);
 		LCD.drawString("Starting Calibration", 0, 2);
 		while(!Button.ENTER.isDown()){
 			calibratorLeft.fetchSample (sampleLeft,  0);
@@ -68,8 +111,8 @@ public class Robot {
 		}
 		calibratorLeft.stopCalibration();
 		calibratorRight.stopCalibration();
-		
-		Delay.msDelay(500);
+		this.stop();
+		Delay.msDelay(1000);
 		LCD.clear();
 	}
 
