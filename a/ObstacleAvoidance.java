@@ -19,8 +19,8 @@ public class ObstacleAvoidance {
 	float pidValueOA = 0;
 	
 	private int obstacleDistance = 6;
-	private float maxBlack = 0.4f;
-	private float minWhite = 0.7f;
+	private float maxBlack = 0.3f;
+	private float minWhite = 0.8f;
 	
 	public ObstacleAvoidance(Robot robot, Helper help){
 		wallz = robot;

@@ -172,7 +172,7 @@ public class Robot {
 			centerRightSensor(maxBlack, minWhite, speed);
 		}
 		
-		this.drive(150, -150);
+		this.drive(200, -200);
 		Delay.msDelay(1000);
 		this.stop();
 		

@@ -10,7 +10,7 @@ public class CourseWork {
 		LineFollower lFer = new LineFollower(wallz, util);
 		ObstacleAvoidance oA = new ObstacleAvoidance(wallz, util);
 		while (!Button.ESCAPE.isDown()){
-			//lFer.setVals();
+			lFer.setVals();
 			//oA.setVals();
 			while(!Button.ESCAPE.isDown()){
 				lFer.run();

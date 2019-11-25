@@ -1,4 +1,5 @@
 package a;
+
 import lejos.hardware.lcd.LCD;
 
 public class LineFollower {
@@ -10,14 +11,15 @@ public class LineFollower {
 	float error;
 	float integral = 0; //accumulated error
 	float lastError = 0; //store the last error to be used to calculate the derivative
-	float lastError2 = 0;
 	float pidValue = 0;
 	
-	int baseSpeed = 250;
+	int baseSpeed = 200;
 	float kp = 2;
 	float ki = 0.3f;
 	float kd = 30;
 	float damping = 0.9f;
+	
+	DequeMe errors = new DequeMe(200);
 	
 	public LineFollower(Robot robot, Helper help){
 		wallz = robot;
@@ -28,7 +30,7 @@ public class LineFollower {
 		LCD.drawString("Right: " + Math.round(wallz.pollSensorRight()*100) +"          ", 0, 6);
 		//LCD.drawString("PID: " + pidValue +"          ", 0, 7);
 		error = (wallz.pollSensorLeft() - wallz.pollSensorRight())*100;
-		
+		errors.add(error);
 		if (Math.abs(error) <= 5 || util.oppositeSigns((int)error, (int)lastError)){
 			integral=0;
 		}
@@ -38,17 +40,16 @@ public class LineFollower {
 		
 		pidValue = (error * kp) + (integral * ki) + ((error - lastError) * kd);
 		//Acceleration
-		if(Math.abs(error)<10 && Math.abs(lastError)<10 && Math.abs(lastError2)<10){
-			wallz.drive(baseSpeed+50 + pidValue, baseSpeed+50 - pidValue);
+		if(errors.allValsLessThan(5) && Math.abs(pidValue)<150){
+			wallz.drive((baseSpeed+200) + pidValue, (baseSpeed+200) - pidValue);
 		}
-		else if(Math.abs(error)<5 && Math.abs(lastError)<5 && Math.abs(lastError2)<5){
+		else if(errors.allValsLessThan(10) && Math.abs(pidValue)<150){
 			wallz.drive(baseSpeed+100 + pidValue, baseSpeed+100 - pidValue);
 		}
 		else{
 			wallz.drive(baseSpeed + pidValue, baseSpeed - pidValue);
 		}
 		
-		lastError2 = lastError;
 		lastError = error;
 	}
 	
