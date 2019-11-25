@@ -19,6 +19,8 @@ public class ObstacleAvoidance {
 	float pidValueOA = 0;
 	
 	private int obstacleDistance = 6;
+	private float maxBlack = 0.4f;
+	private float minWhite = 0.7f;
 	
 	public ObstacleAvoidance(Robot robot, Helper help){
 		wallz = robot;
@@ -33,7 +35,7 @@ public class ObstacleAvoidance {
 		if(wallz.getDistance() <= obstacleDistance){
 			wallz.stop();
 			wallz.turnTillDistance(obstacleDistance);
-			while(wallz.pollSensorLeft() > 0.2 && wallz.pollSensorRight() > 0.2 && !Button.ENTER.isDown()){
+			while(wallz.pollSensorLeft() > maxBlack && wallz.pollSensorRight() > maxBlack && !Button.ENTER.isDown()){
 				LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 4);
 				LCD.drawString("PID: " + pidValueOA +"          ", 0, 7);
 				errorOA = wallz.getDistance() - obstacleDistance;
@@ -47,8 +49,12 @@ public class ObstacleAvoidance {
 			}
 			wallz.stop();
 			
-			//PID
-
+			if(wallz.pollSensorRight() <= maxBlack){
+				wallz.getOnLine(maxBlack, minWhite, true);
+			}
+			else{
+				wallz.getOnLine(maxBlack, minWhite, false);
+			}
 			
 			wallz.turnHeadRight();
 		}

@@ -54,8 +54,8 @@ public class Robot {
 	}
 	
 	public void stop(){
-		Motor.B.stop();
 		Motor.C.stop();
+		Motor.B.stop();
 	}
 	
 	public void calibrateSensors(){
@@ -127,29 +127,70 @@ public class Robot {
 		this.stop();
 	}
 	
-
+	public void centerLeftSensor(float maxBlack, float minWhite, int speed){
+		while(this.pollSensorLeft() > maxBlack){
+			this.drive(speed, -speed);
+		}
+		while(this.pollSensorLeft() < minWhite){
+			this.drive(speed, 0);
+		}
+		this.stop();
+		Motor.B.resetTachoCount();
+		Motor.B.rotate(-30);
+		while(this.pollSensorLeft() < minWhite){
+			this.drive(-speed, 0);
+		}
+		this.stop();
+		Motor.B.rotate(Math.abs(Motor.B.getTachoCount()/2));
+	}
+	
+	public void centerRightSensor(float maxBlack, float minWhite, int speed){
+		while(this.pollSensorRight() > maxBlack){
+			this.drive(-speed, speed);
+		}
+		while(this.pollSensorRight() < minWhite){
+			this.drive(0, speed);
+		}
+		this.stop();
+		Motor.C.resetTachoCount();
+		Motor.C.rotate(-30);
+		while(this.pollSensorRight() < minWhite){
+			this.drive(0, -speed);
+		}
+		this.stop();
+		Motor.C.rotate(Math.abs(Motor.C.getTachoCount()/2));
+	}
+	
+	public void getOnLine(float maxBlack, float minWhite, boolean startRight){
+		int speed = 250;
+		if(startRight){
+			centerRightSensor(maxBlack, minWhite, speed);
+			centerLeftSensor(maxBlack, minWhite, speed);
+		}
+		else{
+			centerLeftSensor(maxBlack, minWhite, speed);
+			centerRightSensor(maxBlack, minWhite, speed);
+		}
+		
+		this.drive(150, -150);
+		Delay.msDelay(1000);
+		this.stop();
+		
+	}
 	
 	
 	/*
 	public static void main(String[] args){
 		Robot wallz = new Robot();
 		wallz.calibrateSensors();
-		LCD.clear();
-		while(!Button.ESCAPE.isDown()){
-			wallz.modeLeft.fetchSample(wallz.sampleLeft, 0);
-			wallz.modeRight.fetchSample(wallz.sampleRight, 0);
-			LCD.drawString(wallz.calibratorLeft.getScaleCorrection()[0] +"          ", 0, 0);
-			LCD.drawString(wallz.calibratorLeft.getOffsetCorrection()[0] +"          ", 0, 1);
-			
-			LCD.drawString(wallz.calibratorRight.getScaleCorrection()[0] +"          ", 0, 2);
-			LCD.drawString(wallz.calibratorRight.getOffsetCorrection()[0] +"          ", 0, 3);
-			
-			LCD.drawString("Raw Left: " + Math.round(wallz.sampleLeft[0]*100) +"          ", 0, 4);
-			LCD.drawString("Raw Right: " + Math.round(wallz.sampleRight[0]*100) +"          ", 0, 5);
-			
-			LCD.drawString("Left: " + Math.round(wallz.pollSensorLeft()*100) +"          ", 0, 6);
-			LCD.drawString("Right: " + Math.round(wallz.pollSensorRight()*100) +"          ", 0, 7);
+		Delay.msDelay(2000);
+		while (!Button.ESCAPE.isDown()){
+			wallz.getOnLine(0.4f, 0.7f, false);
+			LCD.drawString("Done!",0,3);
+			Delay.msDelay(2000);
+			LCD.clear();
 		}
 	}
 	*/
+	
 }
