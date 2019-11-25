@@ -10,6 +10,7 @@ public class LineFollower {
 	float error;
 	float integral = 0; //accumulated error
 	float lastError = 0; //store the last error to be used to calculate the derivative
+	float lastError2 = 0;
 	float pidValue = 0;
 	
 	int baseSpeed = 250;
@@ -36,7 +37,18 @@ public class LineFollower {
 		}
 		
 		pidValue = (error * kp) + (integral * ki) + ((error - lastError) * kd);
-		wallz.drive(baseSpeed + pidValue, baseSpeed - pidValue);
+		//Acceleration
+		if(Math.abs(error)<10 && Math.abs(lastError)<10 && Math.abs(lastError2)<10){
+			wallz.drive(baseSpeed+50 + pidValue, baseSpeed+50 - pidValue);
+		}
+		else if(Math.abs(error)<5 && Math.abs(lastError)<5 && Math.abs(lastError2)<5){
+			wallz.drive(baseSpeed+100 + pidValue, baseSpeed+100 - pidValue);
+		}
+		else{
+			wallz.drive(baseSpeed + pidValue, baseSpeed - pidValue);
+		}
+		
+		lastError2 = lastError;
 		lastError = error;
 	}
 	

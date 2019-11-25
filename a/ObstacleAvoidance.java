@@ -25,9 +25,6 @@ public class ObstacleAvoidance {
 	public ObstacleAvoidance(Robot robot, Helper help){
 		wallz = robot;
 		util = help;
-		//LCD.drawString("Position: "+ Motor.B.getPosition()+"       ", 0, 4);
-		//Delay.msDelay(3000);
-		LCD.clear();
 	}
 	
 	public void run(){
@@ -37,7 +34,6 @@ public class ObstacleAvoidance {
 			wallz.turnTillDistance(obstacleDistance);
 			while(wallz.pollSensorLeft() > maxBlack && wallz.pollSensorRight() > maxBlack && !Button.ENTER.isDown()){
 				LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 4);
-				LCD.drawString("PID: " + pidValueOA +"          ", 0, 7);
 				errorOA = wallz.getDistance() - obstacleDistance;
 				
 				derivativeOA = errorOA - lastErrorOA;
