@@ -19,6 +19,11 @@ public class Robot {
 	public float[] sampleLeft = new float[modeLeft.sampleSize()];
 	public float[] sampleRight = new float[modeRight.sampleSize()];
 	
+	public SensorMode modeLeftColor = sensorLeft.getColorIDMode();
+	public SensorMode modeRightColor = sensorRight.getColorIDMode();
+	public float[] sampleLeftColor = new float[modeLeftColor.sampleSize()];
+	public float[] sampleRightColor = new float[modeRightColor.sampleSize()];
+	
 	
 	public EV3UltrasonicSensor ultraSonicSensor = new EV3UltrasonicSensor(SensorPort.S3);
 	public SampleProvider ussProvider = ultraSonicSensor.getDistanceMode();
@@ -93,6 +98,16 @@ public class Robot {
 		return sampleRight[0];
 	}
 	
+	public float pollSensorLeftColor() {
+		modeLeftColor.fetchSample(sampleLeftColor, 0);
+		return sampleLeftColor[0];
+	}
+	
+	public float pollSensorRightColor() {
+		modeRightColor.fetchSample(sampleRightColor, 0);
+		return sampleRightColor[0];
+	}
+	
 	public float getDistance(){
 		ussProvider.fetchSample(sampleDistance, 0);
 		return sampleDistance[0]*100;
@@ -120,7 +135,7 @@ public class Robot {
 	
 	public void turnTillDistance(int distance){
 		this.turnHeadLeft();
-		this.drive(100, -100);
+		this.drive(70, -70);
 		while (this.getDistance()>distance+10 && !Button.ENTER.isDown()){
 			;
 		}
@@ -161,8 +176,8 @@ public class Robot {
 		Motor.C.rotate(Math.abs(Motor.C.getTachoCount()/2));
 	}
 	
-	public void getOnLine(float maxBlack, float minWhite, boolean startRight){
-		int speed = 250;
+	public void getOnLine2(float maxBlack, float minWhite, boolean startRight){
+		int speed = 350;
 		if(startRight){
 			centerRightSensor(maxBlack, minWhite, speed);
 			centerLeftSensor(maxBlack, minWhite, speed);
@@ -172,10 +187,46 @@ public class Robot {
 			centerRightSensor(maxBlack, minWhite, speed);
 		}
 		
-		this.drive(200, -200);
+		this.drive(100, -100);
 		Delay.msDelay(1000);
 		this.stop();
 		
+	}
+	
+	public void getOnLine(){
+		while(this.pollSensorRight()<0.7 || this.pollSensorLeft()<0.7){
+			while(this.pollSensorRight()<0.7){
+				this.drive(0, -150);
+			}
+			while(this.pollSensorLeft()>0.7){
+				this.drive(150, 0);
+			}
+			while(this.pollSensorLeft()<0.7){
+				this.drive(150, 0);
+			}
+			while(this.pollSensorRight()<0.7){
+				this.drive(0, -150);
+			}
+		}
+		this.stop();
+		
+	}
+	
+	public boolean isRed(){
+		if(this.pollSensorRightColor()==0){
+			if(this.pollSensorLeftColor()==0){
+				this.stop();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isInRedRange(){
+		if(this.pollSensorLeft()>0.5f && this.pollSensorRight()>0.5f){
+			return true;
+		}
+		return false;
 	}
 	
 	

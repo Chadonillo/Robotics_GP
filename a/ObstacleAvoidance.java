@@ -12,15 +12,14 @@ public class ObstacleAvoidance {
 	private float lastErrorOA = 0;
 	
 	int baseSpeed = 150;
-	float kpOA = 8;
+	float kpOA = 7;
 	float kiOA = 0;
-	float kdOA = 50;
+	float kdOA = 40;
 	
 	float pidValueOA = 0;
 	
-	private int obstacleDistance = 6;
+	private int obstacleDistance = 4;
 	private float maxBlack = 0.3f;
-	private float minWhite = 0.8f;
 	
 	public ObstacleAvoidance(Robot robot, Helper help){
 		wallz = robot;
@@ -29,10 +28,10 @@ public class ObstacleAvoidance {
 	
 	public void run(){
 		LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 7);
-		if(wallz.getDistance() <= obstacleDistance){
+		if(wallz.getDistance() <= obstacleDistance+3){
 			wallz.stop();
 			wallz.turnTillDistance(obstacleDistance);
-			while(wallz.pollSensorLeft() > maxBlack && wallz.pollSensorRight() > maxBlack && !Button.ENTER.isDown()){
+			while(wallz.pollSensorRight() > maxBlack && !Button.ENTER.isDown()){ //wallz.pollSensorLeft() > maxBlack && 
 				LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 4);
 				errorOA = wallz.getDistance() - obstacleDistance;
 				
@@ -45,12 +44,14 @@ public class ObstacleAvoidance {
 			}
 			wallz.stop();
 			
+			/*
 			if(wallz.pollSensorRight() <= maxBlack){
 				wallz.getOnLine(maxBlack, minWhite, true);
 			}
 			else{
 				wallz.getOnLine(maxBlack, minWhite, false);
-			}
+			}*/
+			wallz.getOnLine();
 			
 			wallz.turnHeadRight();
 		}

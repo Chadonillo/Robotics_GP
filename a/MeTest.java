@@ -1,8 +1,5 @@
 package a;
 
-import lejos.hardware.Button;
-import lejos.hardware.lcd.LCD;
-
 public class MeTest {
 	/*
 	public static void main(String[] args){
