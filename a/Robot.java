@@ -126,11 +126,11 @@ public class Robot {
 	}
 	
 	public void turnHeadLeft(){
-		Motor.D.rotate(-110);
+		Motor.D.rotate(-100);
 	}
 	
 	public void turnHeadRight(){
-		Motor.D.rotate(110);
+		Motor.D.rotate(100);
 	}
 	
 	public void turnTillDistance(int distance){
@@ -194,31 +194,49 @@ public class Robot {
 	}
 	
 	public void getOnLine(){
-		while(this.pollSensorRight()<0.7 || this.pollSensorLeft()<0.7){
-			while(this.pollSensorRight()<0.7){
+		//while(this.pollSensorRight()<0.7 || this.pollSensorLeft()<0.7){
+			/*while(this.pollSensorRight()<0.7){
 				this.drive(0, -150);
-			}
+			}*/
+		if(this.pollSensorRight()<0.7){
 			while(this.pollSensorLeft()>0.7){
 				this.drive(150, 0);
 			}
 			while(this.pollSensorLeft()<0.7){
 				this.drive(150, 0);
 			}
-			while(this.pollSensorRight()<0.7){
+			while(this.pollSensorRight()>0.7){
 				this.drive(0, -150);
 			}
+			while(this.pollSensorRight()<0.7){
+				this.drive(150, -150);
+			}
+		} else {
+			while(this.pollSensorRight()>0.7){
+				this.drive(100, 100);
+			}
 		}
+			
+		//}
 		this.stop();
 		
 	}
 	
-	public boolean isRed(){
-		if(this.pollSensorRightColor()==0){
+	public boolean isRed(boolean isLeft){
+		if(isLeft){
 			if(this.pollSensorLeftColor()==0){
+				this.stop();
+				return true;
+				
+			}
+		}
+		else{
+			if(this.pollSensorRightColor()==0){
 				this.stop();
 				return true;
 			}
 		}
+		
 		return false;
 	}
 	

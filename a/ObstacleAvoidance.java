@@ -2,6 +2,7 @@ package a;
 
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
+import lejos.utility.Delay;
 
 public class ObstacleAvoidance {
 	Helper util;
@@ -11,8 +12,8 @@ public class ObstacleAvoidance {
 	private float errorOA = 0;
 	private float lastErrorOA = 0;
 	
-	int baseSpeed = 150;
-	float kpOA = 7;
+	int baseSpeed = 200;
+	float kpOA = 8;
 	float kiOA = 0;
 	float kdOA = 40;
 	
@@ -30,8 +31,11 @@ public class ObstacleAvoidance {
 		LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 7);
 		if(wallz.getDistance() <= obstacleDistance+3){
 			wallz.stop();
+			while(wallz.getDistance() < 4 || wallz.getDistance() > 300) {
+				wallz.drive(-100, -100);
+			}
 			wallz.turnTillDistance(obstacleDistance);
-			while(wallz.pollSensorRight() > maxBlack && !Button.ENTER.isDown()){ //wallz.pollSensorLeft() > maxBlack && 
+			while(wallz.pollSensorRight() > maxBlack && wallz.pollSensorLeft() > maxBlack && !Button.ENTER.isDown()){ 
 				LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 4);
 				errorOA = wallz.getDistance() - obstacleDistance;
 				
@@ -43,14 +47,6 @@ public class ObstacleAvoidance {
 				lastErrorOA = errorOA;
 			}
 			wallz.stop();
-			
-			/*
-			if(wallz.pollSensorRight() <= maxBlack){
-				wallz.getOnLine(maxBlack, minWhite, true);
-			}
-			else{
-				wallz.getOnLine(maxBlack, minWhite, false);
-			}*/
 			wallz.getOnLine();
 			
 			wallz.turnHeadRight();
