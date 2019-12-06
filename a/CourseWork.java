@@ -18,7 +18,7 @@ public class CourseWork {
 		boolean colorCheckIsLeft = true;
 		while (!Button.ESCAPE.isDown()){
 			//lFer.setVals();
-			//oA.setVals();
+			oA.setVals();
 			
 			while(!Button.ESCAPE.isDown()){
 				if(counter%30 == 0 && wallz.isInRedRange()){

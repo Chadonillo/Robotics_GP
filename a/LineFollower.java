@@ -41,10 +41,10 @@ public class LineFollower {
 		pidValue = (error * kp) + (integral * ki) + ((error - lastError) * kd);
 		//Acceleration
 		if(errors.allValsLessThan(5) && Math.abs(pidValue)<150){
-			wallz.drive((baseSpeed+200) + pidValue, (baseSpeed+200) - pidValue);
+			wallz.drive((baseSpeed+100) + pidValue, (baseSpeed+100) - pidValue);
 		}
 		else if(errors.allValsLessThan(10) && Math.abs(pidValue)<150){
-			wallz.drive(baseSpeed+100 + pidValue, baseSpeed+100 - pidValue);
+			wallz.drive(baseSpeed+50 + pidValue, baseSpeed+50 - pidValue);
 		}
 		else{
 			wallz.drive(baseSpeed + pidValue, baseSpeed - pidValue);
