@@ -1,7 +1,5 @@
 package a;
 
-//import java.io.File;
-
 import lejos.hardware.Button;
 //import lejos.hardware.Sound;
 import lejos.hardware.lcd.LCD;
@@ -19,7 +17,6 @@ public class CourseWork {
 		while (!Button.ESCAPE.isDown()){
 			//lFer.setVals();
 			oA.setVals();
-			
 			while(!Button.ESCAPE.isDown()){
 				if(counter%30 == 0 && wallz.isInRedRange()){
 					colorCheckIsLeft = !colorCheckIsLeft;
@@ -27,8 +24,6 @@ public class CourseWork {
 						wallz.drive(-70,-70);
 						Delay.msDelay(600);
 						wallz.stop();
-
-						
 					}
 					while(wallz.isRed(colorCheckIsLeft) || wallz.isRed(!colorCheckIsLeft)){
 						LCD.drawString("Left: " + Math.round(wallz.pollSensorLeft()*100) +"          ", 0, 5);

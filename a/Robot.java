@@ -134,13 +134,13 @@ public class Robot {
 	}
 	
 	public void turnTillDistance(int distance){
-		this.drive(70, -70);
-		Delay.msDelay(1400);
-		this.turnHeadLeft();
 		//this.drive(70, -70);
-		//while (this.getDistance()>distance && !Button.ENTER.isDown()){
-		//	;
-		//}
+		//Delay.msDelay(1400);
+		this.turnHeadLeft();
+		this.drive(70, -70);
+		while (this.getDistance()>distance && !Button.ENTER.isDown()){
+			;
+		}
 		this.stop();
 	}
 	
