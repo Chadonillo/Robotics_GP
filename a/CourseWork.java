@@ -13,7 +13,7 @@ public class CourseWork {
 		
 		while (!Button.ESCAPE.isDown()){
 			//lFer.setVals();
-			oA.setVals();
+			//oA.setVals();
 			int counter = 0;
 			while(!Button.ESCAPE.isDown()){
 				redCheck.run(counter);

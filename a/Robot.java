@@ -154,7 +154,7 @@ public class Robot {
 				this.drive(100, 100);
 			}
 		}
-		this.stopParallel();
+		this.stop();
 		
 	}
 }

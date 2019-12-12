@@ -8,7 +8,7 @@ public class ObstacleAvoidance {
 	Robot wallz;
 	
 	float currDistance;
-	private int obstacleDistance = 10;
+	private int obstacleDistance = 12;
 	private float maxBlack = 0.3f;
 	
 	private float derivativeOA = 0; //used to predict next error
@@ -27,7 +27,7 @@ public class ObstacleAvoidance {
 	
 	public void run(){
 		LCD.drawString("Distance: "+ wallz.getDistance()+"       ", 0, 7);
-		if(wallz.getDistance() <= obstacleDistance){
+		if(wallz.getDistance() <= obstacleDistance-2){
 			wallz.stopParallel();
 			
 			wallz.turnTillDistance(obstacleDistance+5);
@@ -45,11 +45,22 @@ public class ObstacleAvoidance {
 				derivativeOA = errorOA - lastErrorOA;
 				
 				pidValueOA = (errorOA * kpOA) + (derivativeOA * kdOA) ;
-				wallz.drive(baseSpeed - pidValueOA, baseSpeed + pidValueOA);
+				
+				if(Math.abs(baseSpeed - pidValueOA)>500 || Math.abs(baseSpeed + pidValueOA)>500){
+					wallz.drive(-75, 75);
+					while (wallz.getDistance()>obstacleDistance+10 && !Button.ENTER.isDown()){
+						;
+					}
+					wallz.stop();
+				}
+				else{
+					wallz.drive(baseSpeed - pidValueOA, baseSpeed + pidValueOA);
+				}
+				
 				
 				lastErrorOA = errorOA;
 			}
-			wallz.stopParallel();
+			wallz.stop();
 			wallz.getOnLine();
 			
 			wallz.turnHeadRight();
