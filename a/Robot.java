@@ -32,12 +32,6 @@ public class Robot {
 	LinearCalibrationFilter  calibratorLeft  =  new LinearCalibrationFilter (modeLeft);
 	LinearCalibrationFilter  calibratorRight  =  new LinearCalibrationFilter (modeRight);
 
-	public float transform (float min, float max, float val){
-		float answer = (val-min)/(max-min);
-    	if(answer<0){answer = 0;}
-    	else if(answer>1){answer = 1;}
-    	return answer;
-    }
 	public void drive(float l, float r) {
 		Motor.B.setSpeed(Math.abs(l));
 		Motor.C.setSpeed(Math.abs(r));
@@ -63,6 +57,17 @@ public class Robot {
 		Motor.B.stop();
 	}
 	
+	public void stopParallel(){
+		int stopValB = Motor.B.getTachoCount();
+		int stopValC = Motor.C.getTachoCount();
+		Motor.C.stop();
+		Motor.B.stop();
+		Motor.B.setSpeed(100);
+		Motor.C.setSpeed(100);
+		Motor.B.rotate(stopValB- Motor.B.getTachoCount());
+		Motor.C.rotate(stopValC- Motor.C.getTachoCount());
+	}
+	
 	public void calibrateSensors(){
 		LCD.drawString("Press Enter To", 0, 3);
 		LCD.drawString("Start Calibration", 0, 5);
@@ -81,7 +86,7 @@ public class Robot {
 			calibratorLeft.fetchSample (sampleLeft,  0);
 			calibratorRight.fetchSample (sampleRight,  0);
 		}
-		this.stop();
+		this.stopParallel();
 		calibratorLeft.stopCalibration();
 		calibratorRight.stopCalibration();
 		Delay.msDelay(1000);
@@ -113,18 +118,6 @@ public class Robot {
 		return sampleDistance[0]*100;
 	}
 	
-	public void turnLeft(){
-		this.drive(-300, 300);
-		Delay.msDelay(450);
-		this.stop();
-	}
-	
-	public void turnRight(){
-		this.drive(300, -300);
-		Delay.msDelay(450);
-		this.stop();
-	}
-	
 	public void turnHeadLeft(){
 		Motor.D.rotate(-100);
 	}
@@ -134,72 +127,15 @@ public class Robot {
 	}
 	
 	public void turnTillDistance(int distance){
-		//this.drive(70, -70);
-		//Delay.msDelay(1400);
 		this.turnHeadLeft();
-		this.drive(70, -70);
+		this.drive(50, -50);
 		while (this.getDistance()>distance && !Button.ENTER.isDown()){
 			;
 		}
 		this.stop();
 	}
 	
-	public void centerLeftSensor(float maxBlack, float minWhite, int speed){
-		while(this.pollSensorLeft() > maxBlack){
-			this.drive(speed, -speed);
-		}
-		while(this.pollSensorLeft() < minWhite){
-			this.drive(speed, 0);
-		}
-		this.stop();
-		Motor.B.resetTachoCount();
-		Motor.B.rotate(-30);
-		while(this.pollSensorLeft() < minWhite){
-			this.drive(-speed, 0);
-		}
-		this.stop();
-		Motor.B.rotate(Math.abs(Motor.B.getTachoCount()/2));
-	}
-	
-	public void centerRightSensor(float maxBlack, float minWhite, int speed){
-		while(this.pollSensorRight() > maxBlack){
-			this.drive(-speed, speed);
-		}
-		while(this.pollSensorRight() < minWhite){
-			this.drive(0, speed);
-		}
-		this.stop();
-		Motor.C.resetTachoCount();
-		Motor.C.rotate(-30);
-		while(this.pollSensorRight() < minWhite){
-			this.drive(0, -speed);
-		}
-		this.stop();
-		Motor.C.rotate(Math.abs(Motor.C.getTachoCount()/2));
-	}
-	
-	public void getOnLine2(float maxBlack, float minWhite, boolean startRight){
-		int speed = 350;
-		if(startRight){
-			centerRightSensor(maxBlack, minWhite, speed);
-			centerLeftSensor(maxBlack, minWhite, speed);
-		}
-		else{
-			centerLeftSensor(maxBlack, minWhite, speed);
-			centerRightSensor(maxBlack, minWhite, speed);
-		}
-		
-		this.drive(100, -100);
-		Delay.msDelay(1000);
-		this.stop();
-		
-	}
-	
 	public void getOnLine(){
-		//while(this.pollSensorRight()<0.7 || this.pollSensorLeft()<0.7){
-			/*while(this.pollSensorRight()<0.7){
-				this.drive(0, -150);
-			}*/
 		if(this.pollSensorRight()<0.7){
 			while(this.pollSensorLeft()>0.7){
 				this.drive(150, 0);
@@ -218,50 +154,7 @@ public class Robot {
 				this.drive(100, 100);
 			}
 		}
-			
-		//}
-		this.stop();
+		this.stopParallel();
 		
 	}
-	
-	public boolean isRed(boolean isLeft){
-		if(isLeft){
-			if(this.pollSensorLeftColor()==0){
-				this.stop();
-				return true;
-				
-			}
-		}
-		else{
-			if(this.pollSensorRightColor()==0){
-				this.stop();
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	public boolean isInRedRange(){
-		if(this.pollSensorLeft()>0.5f && this.pollSensorRight()>0.5f){
-			return true;
-		}
-		return false;
-	}
-	
-	
-	/*
-	public static void main(String[] args){
-		Robot wallz = new Robot();
-		wallz.calibrateSensors();
-		Delay.msDelay(2000);
-		while (!Button.ESCAPE.isDown()){
-			wallz.getOnLine(0.4f, 0.7f, false);
-			LCD.drawString("Done!",0,3);
-			Delay.msDelay(2000);
-			LCD.clear();
-		}
-	}
-	*/
-	
 }
