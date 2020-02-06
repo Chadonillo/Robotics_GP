@@ -113,10 +113,12 @@ public class GoForward {
 //			Delay.msDelay(500);
 //
 //		}
+		
+		/*
 		EV3GyroSensor gyrosensor = new EV3GyroSensor(SensorPort.S1);
 		SampleProvider modeAngle = gyrosensor.getAngleMode();
 		float[] sampleAngle = new float[modeAngle.sampleSize()];
-		
+		*/
 		
 		
 		EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
@@ -126,11 +128,12 @@ public class GoForward {
 		Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
 		MovePilot wallz = new MovePilot(chassis);
 		
-		
+		/*
 		wallz.setLinearSpeed(50);
 		wallz.setAngularSpeed(50);
 		while(!Button.ESCAPE.isDown()){
 			if(Button.ENTER.isDown()){
+				gyrosensor.reset();
 				for(int i=0; i<4; ++i) {
 					wallz.travel(500);
 					wallz.rotate(-90);
@@ -139,16 +142,21 @@ public class GoForward {
 				}
 			}
 		}
-		
+		*/
 		
 		//Next Task
-		/*
-		wallz.travel(80);
-		wallz.rotate(-90);
-		wallz.travel(50);
-		wallz.rotate(135);
-		wallz.travel(50);
-		*/
+		wallz.setLinearSpeed(50);
+		wallz.setAngularSpeed(50);
+		while(!Button.ESCAPE.isDown()) {
+			if(Button.ENTER.isDown()) {
+				wallz.travel(80);
+				wallz.rotate(-90);
+				wallz.travel(50);
+				wallz.rotate(135);
+				wallz.travel(50);
+			}
+		}
+		
 		
 		//wallz.rotate(90);
 
