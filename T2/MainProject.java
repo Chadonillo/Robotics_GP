@@ -1,12 +1,17 @@
 package T2;
 
 import lejos.hardware.Button;
+import lejos.utility.Delay;
 
 public class MainProject {
 	public static void main(String[] args){
 		Robot wallz = new Robot();
-		wallz.rgbValues();
-		wallz.localize();
-		while(!Button.ESCAPE.isDown()){;}
+		while(!Button.ESCAPE.isDown()){
+			Delay.msDelay(500);
+			wallz.rgbValues();
+			wallz.centralizeOnStripBox();
+			wallz.localize();
+			while(!Button.ENTER.isDown()){;}
+		}
 	}
 }

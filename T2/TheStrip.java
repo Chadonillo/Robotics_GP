@@ -41,22 +41,18 @@ public class TheStrip {
 
         if(movedFoward) {
 
-            for (int i = bayesianProbs.length - 1; i > 0; --i) {
+            for (int i = bayesianProbs.length - 1; i > 8; --i) {
                 bayesianProbs[i] = bayesianProbs[i - 1] * moveProba + bayesianProbs[i] * (1 - moveProba);
                 normalization += bayesianProbs[i];
             }
-            
-            bayesianProbs[0] = bayesianProbs[bayesianProbs.length - 1] * moveProba + bayesianProbs[0] * (1 - moveProba);
-            normalization += bayesianProbs[0];
 
         } 
         else {
-            for (int i = 0; i < bayesianProbs.length - 1; ++i) {
+            for (int i = 9; i < bayesianProbs.length - 1; ++i) {
                 bayesianProbs[i] = bayesianProbs[i + 1] * moveProba + bayesianProbs[i] * (1 - moveProba);
                 normalization += bayesianProbs[i];
             }
-            bayesianProbs[bayesianProbs.length - 1] = bayesianProbs[0] * moveProba + bayesianProbs[bayesianProbs.length - 1] * (1 - moveProba);
-            normalization += bayesianProbs[bayesianProbs.length - 1];
+            bayesianProbs[bayesianProbs.length - 1]=0;
         }
         
         normalize(normalization);
@@ -71,9 +67,9 @@ public class TheStrip {
     }
 
     public int getLocation() {
-        double max = bayesianProbs[0];
-        int index = 0;
-        for(int i = 1; i < bayesianProbs.length; ++i) {
+        double max = bayesianProbs[bayesianProbs.length-1];
+        int index = bayesianProbs.length-1;
+        for(int i = bayesianProbs.length-1; i >= 0; --i) {
             if(bayesianProbs[i] > max) {
                 max = bayesianProbs[i];
                 index = i;
@@ -85,5 +81,18 @@ public class TheStrip {
 
     public double getHighestProbability() {
         return bayesianProbs[getLocation()];
+    }
+    
+    public double getProbability(int pos) {
+        return bayesianProbs[pos-1];
+    }
+    
+    public void resetProbs(){
+        for(int i = 0; i < 9; ++i){
+            bayesianProbs[i] = 0;
+        }
+        for(int i = 9; i < bayesianProbs.length; ++i){
+            bayesianProbs[i] = 1.0 / (squareIsBlue.length - 9);
+        }
     }
 }
