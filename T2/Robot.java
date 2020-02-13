@@ -21,6 +21,7 @@ public class Robot {
 	
 	EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
 	
+	
 	EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
 	Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(-60.5);
@@ -52,22 +53,33 @@ public class Robot {
 		}
 	}
 	
+	public void infraRedValues(){
+		SensorMode colorMode = colorSensor.getRedMode();
+        float[] sample = new float[colorMode.sampleSize()];
+		while(!Button.ENTER.isDown()){
+	        colorMode.fetchSample(sample, 0);
+	        LCD.drawString("" +sample[0]+"          ", 0, 3);
+	        Delay.msDelay(50);
+		}
+	}
+	
 	public void centralizeOnStripBox(){
-		double minWhite = 0.3;
-		double maxBlue = 0.1;
+		colorSensor.setFloodlight(true);
+		double minWhite = 0.55;
+		double maxBlue = 0.09;
 		double getToColorMin=minWhite;
     	double getToColorMax=1.0;
     	
-		SensorMode colorMode = colorSensor.getRGBMode();
+		SensorMode colorMode = colorSensor.getRedMode();
         float[] sample = new float[colorMode.sampleSize()];
         colorMode.fetchSample(sample, 0);
-        double startColor = sample[2];
+        double startColor = sample[0];
         
         if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
         	this.move(boxLenght/2,60,false);
         	Delay.msDelay(500);
         	colorMode.fetchSample(sample, 0);
-        	startColor = sample[2];	
+        	startColor = sample[0];	
         }
         if(startColor>minWhite){ //if we are on white. go to blue
         	getToColorMin = 0.0;
@@ -76,7 +88,7 @@ public class Robot {
         
         motorL.resetTachoCount();
         this.move(100,60,true);
-        while((sample[2]<getToColorMin || sample[2]>getToColorMax) && !Button.ESCAPE.isDown()){
+        while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
         	colorMode.fetchSample(sample, 0);
         }
         this.stop();
@@ -85,17 +97,18 @@ public class Robot {
 	}
 	
 	public double localize() {
+		colorSensor.setFloodlight(true);
 		this.resetStrip();
         double sensorProbability = 0.95;
         double threshold = 0.1;
 
-        SensorMode colorMode = colorSensor.getRGBMode();
+        SensorMode colorMode = colorSensor.getRedMode();
         float[] sample = new float[colorMode.sampleSize()];
         boolean movingForward = true;
         while(theMainStrip.getHighestProbability() < 0.85 && !Button.ESCAPE.isDown()) {
             colorMode.fetchSample(sample, 0);
             boolean isBlue = false;
-            if (sample[2] < threshold){isBlue = true;}
+            if (sample[0] < threshold){isBlue = true;}
             if(isBlue){LCD.drawString("Blue             ", 0, 7);}
             else{LCD.drawString("white             ", 0, 7);}
             if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}

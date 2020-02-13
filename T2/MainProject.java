@@ -8,7 +8,7 @@ public class MainProject {
 		Robot wallz = new Robot();
 		while(!Button.ESCAPE.isDown()){
 			Delay.msDelay(500);
-			wallz.rgbValues();
+			wallz.infraRedValues();
 			wallz.centralizeOnStripBox();
 			wallz.localize();
 			while(!Button.ENTER.isDown()){;}
