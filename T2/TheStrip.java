@@ -58,8 +58,6 @@ public class TheStrip {
         normalize(normalization);
     }
 
-
-
     private void normalize(double normalization) {
         for(int i = 0; i < bayesianProbs.length; ++i) {
             bayesianProbs[i] /= normalization;

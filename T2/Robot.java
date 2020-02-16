@@ -1,34 +1,81 @@
 package T2;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.SensorPort;
-import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.SensorMode;
-import lejos.robotics.navigation.*;
-
-import lejos.robotics.chassis.*;
 import lejos.utility.Delay;
 import lejos.hardware.Sound;
 
-public class Robot {
-	private static double wheelDiameter = 56.5;
-	private static double boxLenght = 17.5;
-	
-	TheStrip theMainStrip = new TheStrip();
-	
-	EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
-	
-	
-	EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
-	EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
-	Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(-60.5);
-	Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(60.5);
-	Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
-	MovePilot pilot = new MovePilot(chassis);
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.EV3GyroSensor;
+import lejos.hardware.sensor.SensorMode;
+import lejos.robotics.DirectionFinderAdapter;
+import lejos.robotics.SampleProvider;
 
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.port.MotorPort;
+import lejos.robotics.navigation.*;
+import lejos.robotics.chassis.*;
+import lejos.robotics.localization.CompassPoseProvider;
+
+public class Robot {
+	private static double wheelDiameter = 5.65;
+	private static double boxLenght = 1.75;
+	private static int baseSpeed = 4;
+	
+	private TheStrip theMainStrip = new TheStrip();
+	
+	private EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
+	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S2);
+	
+	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
+	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
+	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.05);
+	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.05);
+	private Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
+	private MovePilot pilot = new MovePilot(chassis);
+	
+	SampleProvider angleProvider = gyroSensor.getAngleMode();
+	DirectionFinderAdapter compass = new DirectionFinderAdapter(angleProvider);
+	
+	//OdometryPoseProvider poseProvider = new OdometryPoseProvider(pilot);
+	//GyroscopeAdapter gyroAdaptor = new GyroscopeAdapter(gyroSensor.getAngleMode(),5);
+	//GyroDirectionFinder compass = new GyroDirectionFinder(gyroAdaptor);
+	CompassPoseProvider poseProvider = new CompassPoseProvider(pilot, compass);
+	Navigator navigator = new Navigator(pilot, poseProvider);
+	
+	Astar astarAlgo = new Astar();
+	
+	public void showPose(){
+		while(!Button.ENTER.isDown()){
+			LCD.drawString("x: " +poseProvider.getPose().getX()+"          ", 0, 3);
+	        LCD.drawString("y: " +poseProvider.getPose().getY()+"          ", 0, 5);
+	        LCD.drawString("0: " +poseProvider.getPose().getHeading()+"          ", 0, 7);
+		}
+	}
+	
+	public void naviagate(){
+		pilot.setAngularSpeed(30);
+		pilot.setLinearSpeed(30);
+		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(50, 110)));
+		navigator.waitForStop();
+		Delay.msDelay(2000);
+		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(110, 10)));
+	}
+	
+	public void test(){
+		pilot.setAngularSpeed(30);
+		pilot.setLinearSpeed(30);
+		navigator.addWaypoint(20, 20);
+		navigator.addWaypoint(20, 40);
+		navigator.addWaypoint(20, 60);
+		navigator.addWaypoint(20, 80);
+		navigator.addWaypoint(40, 80);
+		navigator.addWaypoint(60, 80);
+		navigator.addWaypoint(80, 80);
+		navigator.addWaypoint(100, 100);
+		navigator.followPath();
+	}
+	
 	public void move(double distance, int speed, boolean immediateReturn){
 		pilot.setLinearSpeed(speed);
 		pilot.travel(distance, immediateReturn);
@@ -63,6 +110,17 @@ public class Robot {
 		}
 	}
 	
+	public void gyroValues(){
+		gyroSensor.reset();
+		SampleProvider angleMode = gyroSensor.getAngleMode();
+        float[] sample = new float[angleMode.sampleSize()];
+		while(!Button.ENTER.isDown()){
+			angleMode.fetchSample(sample, 0);
+	        LCD.drawString("Angle:" +sample[0]+"          ", 0, 3);
+	        Delay.msDelay(50);
+		}
+	}
+	
 	public void centralizeOnStripBox(){
 		colorSensor.setFloodlight(true);
 		double minWhite = 0.55;
@@ -76,7 +134,7 @@ public class Robot {
         double startColor = sample[0];
         
         if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
-        	this.move(boxLenght/2,60,false);
+        	this.move(boxLenght/2,baseSpeed,false);
         	Delay.msDelay(500);
         	colorMode.fetchSample(sample, 0);
         	startColor = sample[0];	
@@ -85,15 +143,15 @@ public class Robot {
         	getToColorMin = 0.0;
         	getToColorMax = maxBlue;
         }
-        
-        motorL.resetTachoCount();
-        this.move(100,60,true);
+        this.stop();
+        this.move(10,baseSpeed,true);
         while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
         	colorMode.fetchSample(sample, 0);
         }
+        float dist = pilot.getMovement().getDistanceTraveled();
         this.stop();
-        int moveBackSteps = (int) Math.ceil((double)motorL.getTachoCount()/(double)35.0);
-        this.move(-boxLenght*moveBackSteps, 60, false);
+        int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
+        this.move(-boxLenght*moveBackSteps, baseSpeed, false);
 	}
 	
 	public double localize() {
@@ -113,8 +171,8 @@ public class Robot {
             else{LCD.drawString("white             ", 0, 7);}
             if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}
             if(theMainStrip.getLocation()+1==10 && theMainStrip.getHighestProbability()>= 0.4){movingForward=true;}
-            if(movingForward){this.move(boxLenght, 60, false);}
-            else{this.move(-boxLenght, 60, false);}
+            if(movingForward){this.move(boxLenght, baseSpeed, false);}
+            else{this.move(-boxLenght, baseSpeed, false);}
             theMainStrip.setBayesianProbabilities(movingForward, isBlue, sensorProbability, 1);
         }
         LCD.drawString("Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 5);
