@@ -15,7 +15,6 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.robotics.navigation.*;
 import lejos.robotics.chassis.*;
-import lejos.robotics.localization.CompassPoseProvider;
 
 public class Robot {
 	private static double wheelDiameter = 5.65;
@@ -25,14 +24,14 @@ public class Robot {
 	private TheStrip theMainStrip = new TheStrip();
 	
 	private EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
-	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S2);
+	EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S2);
 	
 	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
-	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.05);
-	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.05);
+	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(-6);
+	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(6);
 	private Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
-	private MovePilot pilot = new MovePilot(chassis);
+	MovePilot pilot = new MovePilot(chassis);
 	
 	SampleProvider angleProvider = gyroSensor.getAngleMode();
 	DirectionFinderAdapter compass = new DirectionFinderAdapter(angleProvider);
@@ -40,8 +39,11 @@ public class Robot {
 	//OdometryPoseProvider poseProvider = new OdometryPoseProvider(pilot);
 	//GyroscopeAdapter gyroAdaptor = new GyroscopeAdapter(gyroSensor.getAngleMode(),5);
 	//GyroDirectionFinder compass = new GyroDirectionFinder(gyroAdaptor);
-	CompassPoseProvider poseProvider = new CompassPoseProvider(pilot, compass);
-	Navigator navigator = new Navigator(pilot, poseProvider);
+	//CompassPoseProvider poseProvider = new CompassPoseProvider(pilot, compass);
+	//Navigator navigator = new Navigator(pilot, poseProvider);
+	
+	GyroPoseProvider poseProvider = new GyroPoseProvider(pilot, gyroSensor);
+	CustomNavigator navigator = new CustomNavigator(pilot, poseProvider);
 	
 	Astar astarAlgo = new Astar();
 	
@@ -56,10 +58,14 @@ public class Robot {
 	public void naviagate(){
 		pilot.setAngularSpeed(30);
 		pilot.setLinearSpeed(30);
+		poseProvider.setPose(new Pose(11,7,0));
 		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(50, 110)));
 		navigator.waitForStop();
 		Delay.msDelay(2000);
 		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(110, 10)));
+		navigator.waitForStop();
+		Delay.msDelay(2000);
+		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(11,7,0)));
 	}
 	
 	public void test(){

@@ -23,7 +23,7 @@ public class Environment{
 	}
 
 	private Line[] getLines() {
-		Line[] lines = new Line[8];
+		Line[] lines = new Line[10];
 		lines[0] = new Line(0,0,0,120);
 		lines[1] = new Line(0,0,120,0);
 		lines[2] = new Line(120,120,0,120);
@@ -33,6 +33,8 @@ public class Environment{
 		lines[5] = new Line(0,60,70,60);
 		lines[6] = new Line(50,40,120,40);
 		lines[7] = new Line(50,25,120,25);
+		lines[8] = new Line(50,75,50,60);
+		lines[9] = new Line(70,60,70,75);
 		return lines;
 	}
 	
