@@ -8,7 +8,6 @@ import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.SensorMode;
-import lejos.robotics.DirectionFinderAdapter;
 import lejos.robotics.SampleProvider;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -17,68 +16,104 @@ import lejos.robotics.navigation.*;
 import lejos.robotics.chassis.*;
 
 public class Robot {
-	private static double wheelDiameter = 5.65;
+	private static double wheelDiameter = 5.6;
 	private static double boxLenght = 1.75;
 	private static int baseSpeed = 4;
 	
 	private TheStrip theMainStrip = new TheStrip();
 	
 	private EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
-	EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S2);
+	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S2);
 	
 	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
-	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(-6);
-	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(6);
+	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.3);
+	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.3);
 	private Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
 	MovePilot pilot = new MovePilot(chassis);
-	
-	SampleProvider angleProvider = gyroSensor.getAngleMode();
-	DirectionFinderAdapter compass = new DirectionFinderAdapter(angleProvider);
-	
-	//OdometryPoseProvider poseProvider = new OdometryPoseProvider(pilot);
-	//GyroscopeAdapter gyroAdaptor = new GyroscopeAdapter(gyroSensor.getAngleMode(),5);
-	//GyroDirectionFinder compass = new GyroDirectionFinder(gyroAdaptor);
-	//CompassPoseProvider poseProvider = new CompassPoseProvider(pilot, compass);
-	//Navigator navigator = new Navigator(pilot, poseProvider);
 	
 	GyroPoseProvider poseProvider = new GyroPoseProvider(pilot, gyroSensor);
 	CustomNavigator navigator = new CustomNavigator(pilot, poseProvider);
 	
-	Astar astarAlgo = new Astar();
-	
 	public void showPose(){
-		while(!Button.ENTER.isDown()){
-			LCD.drawString("x: " +poseProvider.getPose().getX()+"          ", 0, 3);
-	        LCD.drawString("y: " +poseProvider.getPose().getY()+"          ", 0, 5);
-	        LCD.drawString("0: " +poseProvider.getPose().getHeading()+"          ", 0, 7);
-		}
+		navigator.showPose();
 	}
 	
 	public void naviagate(){
+		poseProvider.setPose(new Pose(0,0,0));
 		pilot.setAngularSpeed(30);
 		pilot.setLinearSpeed(30);
-		poseProvider.setPose(new Pose(11,7,0));
-		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(50, 110)));
-		navigator.waitForStop();
-		Delay.msDelay(2000);
-		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(110, 10)));
-		navigator.waitForStop();
-		Delay.msDelay(2000);
-		navigator.followPath(astarAlgo.findPath(navigator.getPoseProvider().getPose(), new Waypoint(11,7,0)));
 	}
 	
-	public void test(){
-		pilot.setAngularSpeed(30);
-		pilot.setLinearSpeed(30);
-		navigator.addWaypoint(20, 20);
-		navigator.addWaypoint(20, 40);
-		navigator.addWaypoint(20, 60);
-		navigator.addWaypoint(20, 80);
-		navigator.addWaypoint(40, 80);
-		navigator.addWaypoint(60, 80);
-		navigator.addWaypoint(80, 80);
-		navigator.addWaypoint(100, 100);
+	public void testNavSquare(int len){
+		pilot.setAngularAcceleration(20);
+		pilot.setLinearAcceleration(10);
+		
+		pilot.setAngularSpeed(20);
+		pilot.setLinearSpeed(10);
+		
+		navigator.addWaypoint(len, 0);
+		navigator.addWaypoint(len, len);
+		navigator.addWaypoint(0, len);
+		navigator.addWaypoint(0, 0, 0);
+		navigator.followPath();
+	}
+	
+	public void testPilotSquare(int len){
+		pilot.setAngularSpeed(20);
+		pilot.setLinearSpeed(10);
+		for(int i=0; i<4; ++i){
+			pilot.travel(len, false);
+			pilot.rotate(90, false);
+		}
+	}
+	
+	public void testNavRotation(){
+		poseProvider.setPose(new Pose(0,0,0));
+		pilot.setAngularAcceleration(5);
+		pilot.setAngularSpeed(20);
+		pilot.setLinearSpeed(10);
+		pilot.setLinearAcceleration(2);
+		navigator.addWaypoint(0, 0, 180);
+		navigator.addWaypoint(0, 0, 359);
+		navigator.followPath();
+	}
+	
+	public void testPilotRotation(){
+		poseProvider.setPose(new Pose(0,0,0));
+		pilot.setAngularSpeed(20);
+		pilot.setLinearSpeed(10);
+		pilot.rotate(360, true);
+	}
+	
+	public void testNavStraight(int len){
+		pilot.setLinearAcceleration(10);
+		pilot.setLinearSpeed(10);
+		navigator.addWaypoint(len, 0);
+		navigator.followPath();
+	}
+	
+	public void testPilotStraight(int len){
+		pilot.setLinearAcceleration(10);
+		pilot.setLinearSpeed(10);
+		pilot.travel(len, true);
+	}
+	
+	public void testZigZagNav(int len){
+		poseProvider.setPose(new Pose(0,0,0));
+		pilot.setAngularAcceleration(20);
+		pilot.setLinearAcceleration(10);
+		
+		pilot.setAngularSpeed(20);
+		pilot.setLinearSpeed(10);
+		
+		navigator.addWaypoint(0, 0);
+		navigator.addWaypoint(len, 0);
+		navigator.addWaypoint(len, len);
+		navigator.addWaypoint(0, len);
+		navigator.addWaypoint(0, len*2);
+		navigator.addWaypoint(len*2, len*2);
+		navigator.addWaypoint(0, 0, 0);
 		navigator.followPath();
 	}
 	
@@ -116,8 +151,8 @@ public class Robot {
 		}
 	}
 	
-	public void gyroValues(){
-		gyroSensor.reset();
+	public void gyroValues(boolean reset){
+		if(reset)gyroSensor.reset();
 		SampleProvider angleMode = gyroSensor.getAngleMode();
         float[] sample = new float[angleMode.sampleSize()];
 		while(!Button.ENTER.isDown()){
@@ -185,6 +220,5 @@ public class Robot {
         Sound.beep();
         return theMainStrip.getHighestProbability();
     }
-	
 	
 }

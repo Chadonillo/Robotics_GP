@@ -155,65 +155,76 @@ public class CustomNavigator implements WaypointListener{
 		
 	}
 
+	private float relativeBearing(Waypoint intendedCurrentPoint, Pose currentPose, Waypoint finalDestination){
+		Pose intendedCurrentPose = new Pose((float)intendedCurrentPoint.getX(), (float)intendedCurrentPoint.getY(), currentPose.getHeading());
+		float intendedBearing = intendedCurrentPose.relativeBearing(finalDestination);
+		float acctualBearing = currentPose.relativeBearing(finalDestination);
+		if(intendedCurrentPoint.getX()>1000 && intendedCurrentPoint.getY()>1000){return acctualBearing;}
+		return intendedBearing;
+	}
+
+	private float normalize(float angle){
+	    float a = angle;
+	    while (a > 180)a -= 360;
+	    while (a < -180) a += 360;
+	    return a;
+	  }
+	
+	private <T extends Number> boolean nearllyEqual(T val_1, T val_2, T error){
+	    if(val_1.doubleValue() < val_2.doubleValue()-error.doubleValue() || 
+	        val_1.doubleValue() > val_2.doubleValue()+error.doubleValue()) return false;
+	    return true;
+	  }
 	
 	private class Nav extends Thread{
 		boolean more = true;
-		float startAngle;
-		float currAngle;
+		Waypoint intendedCurrWayPoint = new Waypoint(1001,1001);
 		float destinationRelativeBearing;
 		float distance;
+		float achiveBearing;
 		
 	    @Override
 		public void run(){ 
 		    while (more){
-		        while (_keepGoing && _path != null && ! _path.isEmpty()){ 
+		        while (_keepGoing && _path != null && ! _path.isEmpty()){
+		        	//Face the correct direction to go to next way point
 		            _destination = _path.get(0);
 		            _pose = poseProvider.getPose();
-		            destinationRelativeBearing = _pose.relativeBearing(_destination);
-		            
-		            
+		            destinationRelativeBearing = relativeBearing(intendedCurrWayPoint,_pose, _destination);
+		            achiveBearing = (destinationRelativeBearing+_pose.getHeading())%360;
+		            while(!nearllyEqual(achiveBearing,_pose.getHeading()%360,1)){
+		            	if(!_keepGoing) break;
+		            	((RotateMoveController) _pilot).rotate(destinationRelativeBearing,false);
+		            	_pose = poseProvider.getPose();
+		            	destinationRelativeBearing = relativeBearing(intendedCurrWayPoint,_pose, _destination);
+		            }
 		            if(!_keepGoing) break;
-		            startAngle = _pose.getHeading();
-		            ((RotateMoveController) _pilot).rotate(destinationRelativeBearing,false); 
+
+		            //Move distance necessary to go to next way point
 		            while (_pilot.isMoving() && _keepGoing)Thread.yield(); 
 		            if(!_keepGoing) break;
 		            _pose = poseProvider.getPose();
 		            if(!_keepGoing) break;
-		            
-		            
 		            distance = _pose.distanceTo(_destination);
 		            _pilot.travel(distance, true);
 		            
-		            while ((int)Math.round(poseProvider.getPose().getLocation().x) !=(int)Math.round(_destination.getPose().getLocation().x) 
-		            		|| (int)Math.round(poseProvider.getPose().getLocation().y) !=(int)Math.round(_destination.getPose().getLocation().y)){
-		            	_pose = poseProvider.getPose();
-		            	currAngle = _pose.getHeading();
-		            	if(currAngle>startAngle+destinationRelativeBearing+2 || currAngle<startAngle+destinationRelativeBearing-2 || !_pilot.isMoving() ){
-		            		_pilot.stop();
-		            		startAngle = _pose.getHeading();
-		            		destinationRelativeBearing = _pose.relativeBearing(_destination);
-		            		((RotateMoveController) _pilot).rotate(destinationRelativeBearing,false);
-		            		distance = _pose.distanceTo(_destination);
-				            _pilot.travel(distance, true);
-		            	}
-		            }
+		           //If way point has a heading then DO THIS:
+		            while (_pilot.isMoving() && _keepGoing)Thread.yield(); 
 		            _pose = poseProvider.getPose();
 		            if(!_keepGoing) break;
-		          
 		            if (_destination.isHeadingRequired()){
-		            	
 		            	_pose = poseProvider.getPose();
-		          	    while(_pose.getHeading() != _destination.getHeading()){
-		          	    	((RotateMoveController) _pilot).rotate(_destination.getHeading()-_pose.getHeading(),false);
+		          	    while(!nearllyEqual(_destination.getHeading(),_pose.getHeading(),1)){
+		          	    	((RotateMoveController) _pilot).rotate(normalize((float)(_destination.getHeading()-_pose.getHeading())),false);
 		          	    	_pose = poseProvider.getPose();
 		            	}
 		          	    
-		            }
+		            }//
 		                
 		        
 		            if (_keepGoing && ! _path.isEmpty()){
 		            	if(!_interrupted){ 
-		            		_path.remove(0);
+		            		intendedCurrWayPoint =_path.remove(0);
 		            	}
 		            	_keepGoing = ! _path.isEmpty();
 		            	if(_singleStep)_keepGoing = false;

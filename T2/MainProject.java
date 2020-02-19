@@ -7,14 +7,11 @@ public class MainProject {
 		Robot wallz = new Robot();
 		
 		while(!Button.ESCAPE.isDown()){
-			wallz.naviagate();
+			//LCD.drawString("0: " +wallz.pilot.getAngularAcceleration()+"          ", 0, 3);
+			//LCD.drawString("dx: " +wallz.pilot.getLinearAcceleration()+"          ", 0, 5);
+			wallz.testNavSquare(40);
 			wallz.showPose();
-			//wallz.test();
-			//wallz.infraRedValues();
-			//wallz.centralizeOnStripBox();
-			//wallz.localize();
-			while(!Button.ENTER.isDown()){;}
 			
 		}
-	} 
+	}
 }

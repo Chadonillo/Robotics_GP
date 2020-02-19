@@ -19,11 +19,30 @@ public class GyroPoseProvider extends OdometryPoseProvider {
 		this.sample = new float[angleProvider.sampleSize()];
 		this.gyroSensor.reset();
 	}
-
+	
+	private float averageDegree(double a, double b){
+		a = Math.toRadians(a%360);
+		b = Math.toRadians(b%360);
+		double arct; //Math.atan()
+		double s = (0.5*(Math.sin(a)+Math.sin(b)));
+		double c = (0.5*(Math.cos(a)+Math.cos(b)));
+		
+		if(s>0 && c>0){arct = Math.atan(s/c);}
+		else if(c<0){arct = Math.atan(s/c)+Math.PI;}
+		else{arct = Math.atan(s/c)+(Math.PI*2);}
+		return (float) Math.toDegrees(arct);
+	}
+	
+	private float unnormalize(float angle){
+		float a = angle;
+	    while (a < 0) a += 360;
+	    return a;
+	  }
+	
 	public Pose getPose() {
 		angleProvider.fetchSample(sample, 0);
 		Pose temp = super.getPose();
-		temp.setHeading(sample[0]);
+		temp.setHeading(averageDegree((double)sample[0],(double)unnormalize(temp.getHeading())));
 		return temp;
 	}
 }
