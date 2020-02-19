@@ -27,8 +27,8 @@ public class Robot {
 	
 	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
-	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.3);
-	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.3);
+	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.1);
+	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.1);
 	private Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
 	MovePilot pilot = new MovePilot(chassis);
 	
@@ -60,6 +60,9 @@ public class Robot {
 	}
 	
 	public void testPilotSquare(int len){
+		pilot.setAngularAcceleration(20);
+		pilot.setLinearAcceleration(10);
+		
 		pilot.setAngularSpeed(20);
 		pilot.setLinearSpeed(10);
 		for(int i=0; i<4; ++i){
@@ -99,7 +102,7 @@ public class Robot {
 		pilot.travel(len, true);
 	}
 	
-	public void testZigZagNav(int len){
+	public void testZigZagNav(int len, int limit){
 		poseProvider.setPose(new Pose(0,0,0));
 		pilot.setAngularAcceleration(20);
 		pilot.setLinearAcceleration(10);
@@ -109,10 +112,12 @@ public class Robot {
 		
 		navigator.addWaypoint(0, 0);
 		navigator.addWaypoint(len, 0);
-		navigator.addWaypoint(len, len);
-		navigator.addWaypoint(0, len);
-		navigator.addWaypoint(0, len*2);
-		navigator.addWaypoint(len*2, len*2);
+		for (int i=1; i<=limit; i+=2){
+			navigator.addWaypoint(len, len*i);
+			navigator.addWaypoint(0, len*i);
+			navigator.addWaypoint(0, len*(i+1));
+			navigator.addWaypoint(len, len*(i+1));
+		}
 		navigator.addWaypoint(0, 0, 0);
 		navigator.followPath();
 	}

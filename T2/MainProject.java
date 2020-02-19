@@ -9,7 +9,7 @@ public class MainProject {
 		while(!Button.ESCAPE.isDown()){
 			//LCD.drawString("0: " +wallz.pilot.getAngularAcceleration()+"          ", 0, 3);
 			//LCD.drawString("dx: " +wallz.pilot.getLinearAcceleration()+"          ", 0, 5);
-			wallz.testNavSquare(40);
+			wallz.testZigZagNav(30,4);
 			wallz.showPose();
 			
 		}
