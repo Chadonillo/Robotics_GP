@@ -7,11 +7,8 @@ public class MainProject {
 		Robot wallz = new Robot();
 		
 		while(!Button.ESCAPE.isDown()){
-			//LCD.drawString("0: " +wallz.pilot.getAngularAcceleration()+"          ", 0, 3);
-			//LCD.drawString("dx: " +wallz.pilot.getLinearAcceleration()+"          ", 0, 5);
 			wallz.testZigZagNav(30,4);
 			wallz.showPose();
-			
 		}
 	}
 }

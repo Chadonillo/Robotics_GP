@@ -20,7 +20,7 @@ public class GyroPoseProvider extends OdometryPoseProvider {
 		this.gyroSensor.reset();
 	}
 	
-	private float averageDegree(double a, double b){
+	public float averageDegree(double a, double b){
 		a = Math.toRadians(a%360);
 		b = Math.toRadians(b%360);
 		double arct; //Math.atan()

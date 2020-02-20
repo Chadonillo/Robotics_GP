@@ -27,8 +27,8 @@ public class Robot {
 	
 	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
-	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.1);
-	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.1);
+	private Wheel wheelL = WheeledChassis.modelWheel(motorL, wheelDiameter).offset(6.2);
+	private Wheel wheelR = WheeledChassis.modelWheel(motorR, wheelDiameter).offset(-6.2);
 	private Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
 	MovePilot pilot = new MovePilot(chassis);
 	
@@ -110,7 +110,6 @@ public class Robot {
 		pilot.setAngularSpeed(20);
 		pilot.setLinearSpeed(10);
 		
-		navigator.addWaypoint(0, 0);
 		navigator.addWaypoint(len, 0);
 		for (int i=1; i<=limit; i+=2){
 			navigator.addWaypoint(len, len*i);

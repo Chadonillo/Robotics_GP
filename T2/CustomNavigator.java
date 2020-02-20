@@ -152,15 +152,29 @@ public class CustomNavigator implements WaypointListener{
 	@Override
 	public void pathGenerated() {
 		// TODO Auto-generated method stub
+	}
+	
+	private float averageDegree(double a, double b){
+		a = Math.toRadians(a%360);
+		b = Math.toRadians(b%360);
+		double arct; //Math.atan()
+		double s = (0.5*(Math.sin(a)+Math.sin(b)));
+		double c = (0.5*(Math.cos(a)+Math.cos(b)));
 		
+		if(s>0 && c>0){arct = Math.atan(s/c);}
+		else if(c<0){arct = Math.atan(s/c)+Math.PI;}
+		else{arct = Math.atan(s/c)+(Math.PI*2);}
+		return (float) Math.toDegrees(arct);
 	}
 
 	private float relativeBearing(Waypoint intendedCurrentPoint, Pose currentPose, Waypoint finalDestination){
 		Pose intendedCurrentPose = new Pose((float)intendedCurrentPoint.getX(), (float)intendedCurrentPoint.getY(), currentPose.getHeading());
 		float intendedBearing = intendedCurrentPose.relativeBearing(finalDestination);
 		float acctualBearing = currentPose.relativeBearing(finalDestination);
+		LCD.drawString("IB: " +intendedBearing+"          ", 0, 0);
+		LCD.drawString("AB: " +acctualBearing+"          ", 0, 1);
 		if(intendedCurrentPoint.getX()>1000 && intendedCurrentPoint.getY()>1000){return acctualBearing;}
-		return intendedBearing;
+		return normalize(averageDegree(intendedBearing,acctualBearing));
 	}
 
 	private float normalize(float angle){
@@ -182,6 +196,8 @@ public class CustomNavigator implements WaypointListener{
 		float destinationRelativeBearing;
 		float distance;
 		float achiveBearing;
+		int maxBearingFix = 4;
+		int bearingFixCounter = 0;
 		
 	    @Override
 		public void run(){ 
@@ -192,14 +208,17 @@ public class CustomNavigator implements WaypointListener{
 		            _pose = poseProvider.getPose();
 		            destinationRelativeBearing = relativeBearing(intendedCurrWayPoint,_pose, _destination);
 		            achiveBearing = (destinationRelativeBearing+_pose.getHeading())%360;
-		            while(!nearllyEqual(achiveBearing,_pose.getHeading()%360,1)){
+		            while(!nearllyEqual(achiveBearing,_pose.getHeading()%360,0.5) && bearingFixCounter<maxBearingFix){
+		            	bearingFixCounter+=1;
 		            	if(!_keepGoing) break;
 		            	((RotateMoveController) _pilot).rotate(destinationRelativeBearing,false);
 		            	_pose = poseProvider.getPose();
 		            	destinationRelativeBearing = relativeBearing(intendedCurrWayPoint,_pose, _destination);
 		            }
+		            bearingFixCounter = 0;
 		            if(!_keepGoing) break;
 
+		            
 		            //Move distance necessary to go to next way point
 		            while (_pilot.isMoving() && _keepGoing)Thread.yield(); 
 		            if(!_keepGoing) break;
@@ -208,17 +227,19 @@ public class CustomNavigator implements WaypointListener{
 		            distance = _pose.distanceTo(_destination);
 		            _pilot.travel(distance, true);
 		            
+		            
 		           //If way point has a heading then DO THIS:
 		            while (_pilot.isMoving() && _keepGoing)Thread.yield(); 
 		            _pose = poseProvider.getPose();
 		            if(!_keepGoing) break;
 		            if (_destination.isHeadingRequired()){
 		            	_pose = poseProvider.getPose();
-		          	    while(!nearllyEqual(_destination.getHeading(),_pose.getHeading(),1)){
+		          	    while(!nearllyEqual(_destination.getHeading(),_pose.getHeading(),0.5) && bearingFixCounter<maxBearingFix){
+		          	    	bearingFixCounter+=1;
 		          	    	((RotateMoveController) _pilot).rotate(normalize((float)(_destination.getHeading()-_pose.getHeading())),false);
 		          	    	_pose = poseProvider.getPose();
 		            	}
-		          	    
+		          	    bearingFixCounter = 0; 
 		            }//
 		                
 		        
