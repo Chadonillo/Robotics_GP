@@ -15,7 +15,6 @@ public class CustomNavigator implements WaypointListener{
 	  private Nav _nav ;
 	  private Path _path = new Path();
 	  private boolean _keepGoing = false;
-	  private boolean _singleStep = false;
 	  private boolean _interrupted = false;
 	  private MoveController _pilot;
 	  private PoseProvider poseProvider;
@@ -56,7 +55,6 @@ public class CustomNavigator implements WaypointListener{
 	public void setPath(Path path){
         if (_keepGoing){stop();}  
         _path = path;
-        _singleStep = false;
     }
 	
 	public void clearPath(){
@@ -78,10 +76,6 @@ public class CustomNavigator implements WaypointListener{
 	    _interrupted = false;
 	    _keepGoing = true;
     }
-	
-	public void singleStep(boolean yes){
-		_singleStep = yes;
-	}
 	
 	public void goTo(Waypoint destination){
 		addWaypoint(destination);
@@ -109,9 +103,6 @@ public class CustomNavigator implements WaypointListener{
     }
 	
 	public void addWaypoint(Waypoint aWaypoint){
-		if(_path.isEmpty()){
-			_singleStep = false;
-		}
 	    _path.add(aWaypoint);
 	}
  
@@ -148,7 +139,7 @@ public class CustomNavigator implements WaypointListener{
 	        LCD.drawString("0: " +poseProvider.getPose().getHeading()+"          ", 0, 7);
 		}
     }	
-		
+	
 	@Override
 	public void pathGenerated() {
 		// TODO Auto-generated method stub
@@ -194,8 +185,9 @@ public class CustomNavigator implements WaypointListener{
 		float destinationRelativeBearing;
 		float distance;
 		float achiveBearing;
-		int maxBearingFix = 4;
+		int maxBearingFix = 10;
 		int bearingFixCounter = 0;
+		float maxRotationError = 0.5f;
 		
 	    @Override
 		public void run(){ 
@@ -206,7 +198,7 @@ public class CustomNavigator implements WaypointListener{
 		            _pose = poseProvider.getPose();
 		            destinationRelativeBearing = relativeBearing(intendedCurrWayPoint,_pose, _destination);
 		            achiveBearing = (destinationRelativeBearing+_pose.getHeading())%360;
-		            while(!nearllyEqual(achiveBearing,_pose.getHeading()%360,0.5) && bearingFixCounter<maxBearingFix){
+		            while(!nearllyEqual(achiveBearing,_pose.getHeading()%360,maxRotationError) && bearingFixCounter<maxBearingFix){
 		            	bearingFixCounter+=1;
 		            	if(!_keepGoing) break;
 		            	((RotateMoveController) _pilot).rotate(destinationRelativeBearing,false);
@@ -232,7 +224,7 @@ public class CustomNavigator implements WaypointListener{
 		            if(!_keepGoing) break;
 		            if (_destination.isHeadingRequired()){
 		            	_pose = poseProvider.getPose();
-		          	    while(!nearllyEqual(_destination.getHeading(),_pose.getHeading(),0.5) && bearingFixCounter<maxBearingFix){
+		          	    while(!nearllyEqual(_destination.getHeading(),_pose.getHeading(),maxRotationError) && bearingFixCounter<maxBearingFix){
 		          	    	bearingFixCounter+=1;
 		          	    	((RotateMoveController) _pilot).rotate(normalize((float)(_destination.getHeading()-_pose.getHeading())),false);
 		          	    	_pose = poseProvider.getPose();
@@ -246,7 +238,6 @@ public class CustomNavigator implements WaypointListener{
 		            		intendedCurrWayPoint =_path.remove(0);
 		            	}
 		            	_keepGoing = ! _path.isEmpty();
-		            	if(_singleStep)_keepGoing = false;
 	            	}
 		            Thread.yield();
 		        }

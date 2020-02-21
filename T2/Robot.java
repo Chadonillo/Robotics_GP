@@ -20,10 +20,15 @@ import lejos.robotics.filter.LinearCalibrationFilter;
 public class Robot {
 	private static double wheelDiameter = 5.6;
 	private static double boxLenght = 1.75;
-	private static int baseSpeed = 4;
 	private static double robotOffset = 5.1;
+	
 	private static float gridXlen = 15;
 	private static float gridYlen = 19;
+	
+	private static int baseSpeed = 10;
+	private static int baseAcceleration = 5;
+	private static int baseAngleSpeed = 20;
+	private static int baseAngleAcceleration = 10;
 	
 	private TheStrip theMainStrip = new TheStrip();
 	
@@ -43,23 +48,22 @@ public class Robot {
 	GyroPoseProvider poseProvider = new GyroPoseProvider(pilot, gyroSensor);
 	CustomNavigator navigator = new CustomNavigator(pilot, poseProvider);
 	
+	public void setDefaultSpeed(){
+		pilot.setAngularAcceleration(baseAngleAcceleration);
+		pilot.setLinearAcceleration(baseAcceleration);
+		pilot.setAngularSpeed(baseAngleSpeed);
+		pilot.setLinearSpeed(baseSpeed);
+	}
+	
 	public void showPose(){
 		navigator.showPose();
 	}
 	
 	public void naviagate(){
 		poseProvider.setPose(new Pose(0,0,0));
-		pilot.setAngularSpeed(30);
-		pilot.setLinearSpeed(30);
 	}
 	
 	public void testNavSquare(int len){
-		pilot.setAngularAcceleration(20);
-		pilot.setLinearAcceleration(10);
-		
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
-		
 		navigator.addWaypoint(len, 0);
 		navigator.addWaypoint(len, len);
 		navigator.addWaypoint(0, len);
@@ -68,56 +72,28 @@ public class Robot {
 	}
 	
 	public void testPilotSquare(int len){
-		pilot.setAngularAcceleration(20);
-		pilot.setLinearAcceleration(10);
-		
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
 		for(int i=0; i<4; ++i){
 			pilot.travel(len, false);
 			pilot.rotate(90, false);
 		}
 	}
-	
-	public void testNavRotation(){
-		poseProvider.setPose(new Pose(0,0,0));
-		pilot.setAngularAcceleration(5);
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
-		pilot.setLinearAcceleration(2);
-		navigator.addWaypoint(0, 0, 180);
-		navigator.addWaypoint(0, 0, 359);
-		navigator.followPath();
-	}
-	
+
 	public void testPilotRotation(){
 		poseProvider.setPose(new Pose(0,0,0));
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
 		pilot.rotate(360, true);
 	}
 	
 	public void testNavStraight(int len){
-		pilot.setLinearAcceleration(10);
-		pilot.setLinearSpeed(10);
 		navigator.addWaypoint(len, 0);
 		navigator.followPath();
 	}
 	
 	public void testPilotStraight(int len){
-		pilot.setLinearAcceleration(10);
-		pilot.setLinearSpeed(10);
 		pilot.travel(len, true);
 	}
 	
 	public void testZigZagNav(int len, int limit){
 		poseProvider.setPose(new Pose(0,0,0));
-		pilot.setAngularAcceleration(20);
-		pilot.setLinearAcceleration(10);
-		
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
-		
 		navigator.addWaypoint(len, 0);
 		for (int i=1; i<=limit; i+=2){
 			navigator.addWaypoint(len, len*i);
@@ -130,22 +106,13 @@ public class Robot {
 	}
 	
 	public void test(){
-		pilot.setAngularAcceleration(20);
-		pilot.setLinearAcceleration(10);
-		
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
+		setDefaultSpeed();
+		navigator.addWaypoint(0, 0, 0);
+		navigator.addWaypoint(30, 0);
+		navigator.addWaypoint(60, 10, 0);
+		navigator.followPath();
 	}
-	
-	public void move(double distance, int speed, boolean immediateReturn){
-		pilot.setLinearSpeed(speed);
-		pilot.travel(distance, immediateReturn);
-	}
-	
-	public void stop(){
-		pilot.stop();
-	}
-	
+
 	public void resetStrip(){
 		theMainStrip.resetProbs();
 	}
@@ -175,6 +142,7 @@ public class Robot {
 	}
 	
 	public void calibrateLightSensor(){
+		pilot.setLinearSpeed(1);
 		float[] sample = new float[lightMode.sampleSize()];
 		LCD.drawString("Press Enter To", 0, 3);
 		LCD.drawString("Start Calibration", 0, 5);
@@ -183,23 +151,21 @@ public class Robot {
 		Delay.msDelay(500);
 		
 		calibratorLight.setScaleCalibration(0, 1);
-		
 		calibratorLight.startCalibration();
 		LCD.drawString("Sensor Calibration", 0, 3);
-		this.move(10, 1, true);
+
+		pilot.travel(10, true);		
 		while(pilot.isMoving()){
 			calibratorLight.fetchSample(sample,  0);
 		}
 		calibratorLight.stopCalibration();
 		LCD.drawString("Calibration Complete", 0, 3);
 		Delay.msDelay(1000);
-		calibratorLight.save("ligthSensorCalibration");
 		LCD.clear();
 		
 		while(!Button.ENTER.isDown()){
 			calibratorLight.fetchSample(sample, 0);
 	        LCD.drawString("" +sample[0]+"          ", 0, 3);
-	        Delay.msDelay(50);
 		}
 	}
 	
@@ -216,26 +182,8 @@ public class Robot {
 	    return closest;
 	}
     
-	public void getOnGridFromStrip(int gridPosition){
-		int[][] stripPositionsOnGrid = {{16,3,0},{27,3,1}}; //stripNumber, GridX, GridY
-		int[] closestStrip = closest(gridPosition, stripPositionsOnGrid);
-		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
-		this.move(distanceToTravel, 4, false);
-		
-		pilot.setAngularAcceleration(20);
-		pilot.setLinearAcceleration(10);
-		pilot.setAngularSpeed(20);
-		pilot.setLinearSpeed(10);
-		
-		poseProvider.setPose(new Pose(0,0,90));
-		navigator.addWaypoint(-gridXlen, 0,180);
-		navigator.followPath();
-		navigator.waitForStop();
-		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,180));
-	}
-	
 	public void centralizeOnStripBox(){
-		colorSensor.setFloodlight(true);
+		pilot.setLinearSpeed(4);
 		double minWhite = 0.55;
 		double maxBlue = 0.09;
 		double getToColorMin=minWhite;
@@ -246,7 +194,7 @@ public class Robot {
         double startColor = sample[0];
         
         if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
-        	this.move(boxLenght/2,baseSpeed,false);
+        	pilot.travel(boxLenght/2, false);
         	Delay.msDelay(500);
         	calibratorLight.fetchSample(sample, 0);
         	startColor = sample[0];	
@@ -255,18 +203,19 @@ public class Robot {
         	getToColorMin = 0.0;
         	getToColorMax = maxBlue;
         }
-        this.stop();
-        this.move(10,baseSpeed,true);
+        pilot.stop();
+        pilot.travel(10,true);
         while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
         	calibratorLight.fetchSample(sample, 0);
         }
         float dist = pilot.getMovement().getDistanceTraveled();
-        this.stop();
+        pilot.stop();
         int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
-        this.move(-boxLenght*moveBackSteps, baseSpeed, false);
+        pilot.travel(-boxLenght*moveBackSteps, false);
 	}
 	
 	public int localize(){
+		pilot.setLinearSpeed(4);
 		this.resetStrip();
         double sensorProbability = 0.95;
         double threshold = 0.1;
@@ -281,8 +230,8 @@ public class Robot {
             else{LCD.drawString("white             ", 0, 7);}
             if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}
             if(theMainStrip.getLocation()+1==10 && theMainStrip.getHighestProbability()>= 0.4){movingForward=true;}
-            if(movingForward){this.move(boxLenght, baseSpeed, false);}
-            else{this.move(-boxLenght, baseSpeed, false);}
+            if(movingForward){pilot.travel(boxLenght, false);}
+            else{pilot.travel(-boxLenght, false);}
             theMainStrip.setBayesianProbabilities(movingForward, isBlue, sensorProbability, 1);
         }
         LCD.drawString("Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 0);
@@ -290,4 +239,18 @@ public class Robot {
         return (theMainStrip.getLocation()+1-2);
     }
 	
+	public void getOnGridFromStrip(int gridPosition){
+		int[][] stripPositionsOnGrid = {{16,3,0},{27,3,1}}; //stripNumber, GridX, GridY
+		int[] closestStrip = closest(gridPosition, stripPositionsOnGrid);
+		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
+		setDefaultSpeed();
+		pilot.travel(distanceToTravel, false);
+		
+		poseProvider.setPose(new Pose(0,0,90));
+		navigator.addWaypoint(-gridXlen, 0,180);
+		navigator.followPath();
+		navigator.waitForStop();
+		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,180));
+	}
+
 }
