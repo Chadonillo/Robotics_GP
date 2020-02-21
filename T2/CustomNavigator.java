@@ -171,8 +171,6 @@ public class CustomNavigator implements WaypointListener{
 		Pose intendedCurrentPose = new Pose((float)intendedCurrentPoint.getX(), (float)intendedCurrentPoint.getY(), currentPose.getHeading());
 		float intendedBearing = intendedCurrentPose.relativeBearing(finalDestination);
 		float acctualBearing = currentPose.relativeBearing(finalDestination);
-		LCD.drawString("IB: " +intendedBearing+"          ", 0, 0);
-		LCD.drawString("AB: " +acctualBearing+"          ", 0, 1);
 		if(intendedCurrentPoint.getX()>1000 && intendedCurrentPoint.getY()>1000){return acctualBearing;}
 		return normalize(averageDegree(intendedBearing,acctualBearing));
 	}

@@ -11,6 +11,7 @@ public class GyroPoseProvider extends OdometryPoseProvider {
 	private EV3GyroSensor gyroSensor;
 	private SampleProvider angleProvider;
 	private float[] sample;
+	private float gyroOffset = 0;
 	
 	public GyroPoseProvider(MoveProvider mp, EV3GyroSensor gyroSensor) {
 		super(mp);
@@ -39,10 +40,25 @@ public class GyroPoseProvider extends OdometryPoseProvider {
 	    return a;
 	  }
 	
-	public Pose getPose() {
+	private float getGyroVal(){
 		angleProvider.fetchSample(sample, 0);
+		float a = (sample[0]+gyroOffset)%360;
+		while (a < 0) a += 360;
+		return a;
+	}
+	
+	@Override
+	public Pose getPose() {
 		Pose temp = super.getPose();
-		temp.setHeading(averageDegree((double)sample[0],(double)unnormalize(temp.getHeading())));
+		//temp.setHeading(getGyroVal());
+		temp.setHeading(averageDegree((double)getGyroVal(),(double)unnormalize(temp.getHeading())));
 		return temp;
+	}
+	
+	@Override
+	public synchronized void setPose(Pose aPose){
+		super.setPose(aPose);
+		gyroSensor.reset();
+		gyroOffset = aPose.getHeading();
 	}
 }
