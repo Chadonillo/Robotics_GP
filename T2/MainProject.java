@@ -4,16 +4,18 @@ import lejos.hardware.Button;
 
 public class MainProject {
 	public static void main(String[] args){
-		Robot wallz = new Robot();
 		while(!Button.ESCAPE.isDown()){
-			wallz.naviagate();
-			//wallz.test();
-			wallz.showPose();
-			//wallz.infraRedValues();
-			//wallz.centralizeOnStripBox();
-			//wallz.localize();
 			while(!Button.ENTER.isDown()){;}
-			
+			Robot wallz = new Robot();
+			wallz.centralizeOnStripBox();
+			int stripPos = wallz.localize();
+			wallz.getOnGridFromStrip(stripPos);
+			wallz.naviagate();
+			wallz.showPose();
 		}
-	} 
+	}
 }
+// Things To Do
+// 1) PilotRotate Test to see if robot offset is okay
+// 2) Calibrate light sensor
+// 3) test Navigator Square
