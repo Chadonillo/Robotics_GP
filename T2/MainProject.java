@@ -10,7 +10,7 @@ public class MainProject {
 			wallz.centralizeOnStripBox();
 			int stripPos = wallz.localize();
 			wallz.getOnGridFromStrip(stripPos);
-			int color = wallz.naviagateToBox();
+			int color = wallz.naviagateToBox("left");
 			wallz.naviagateToBase(color);
 			wallz.showPose();
 		}
@@ -20,4 +20,4 @@ public class MainProject {
 // 1) PilotRotate Test to see if robot offset is okay
 // wallz.setDefaultSpeed();
 // wallz.testPilotRotation();
-// 3) test Navigator Square
+// 3) test Navigator Squares

@@ -24,10 +24,10 @@ public class Robot {
 	
 	private Waypoint currentPos;
 	
-	private static int baseSpeed = 10;
-	private static int baseAcceleration = 5;
-	private static int baseAngleSpeed = 20;
-	private static int baseAngleAcceleration = 10;
+	private static int baseSpeed = 20;
+	private static int baseAcceleration = 10;
+	private static int baseAngleSpeed = 40;
+	private static int baseAngleAcceleration = 20;
 	
 	private double minWhite = 0.4;
 	private double maxBlue = 0.15;
@@ -41,9 +41,11 @@ public class Robot {
 	private SensorMode lightMode = colorSensor.getRedMode();
 	private SensorMode colorMode = colorSensor.getColorIDMode();
 	
-	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S3);
-	private EV3TouchSensor touchSensor = new EV3TouchSensor(SensorPort.S2);
-	private SensorMode touchMode = touchSensor.getTouchMode();
+	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S4);
+	private EV3TouchSensor touchSensorLeft = new EV3TouchSensor(SensorPort.S2);
+	private SensorMode touchModeLeft = touchSensorLeft.getTouchMode();
+	private EV3TouchSensor touchSensorRight = new EV3TouchSensor(SensorPort.S3);
+	private SensorMode touchModeRight = touchSensorRight.getTouchMode();
 	
 	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
@@ -56,26 +58,26 @@ public class Robot {
 	private CustomNavigator navigator = new CustomNavigator(pilot, poseProvider);
 	private AStar aStar = new AStar(); 
 
-	private Path obstacle_1 = new Path();
-	private Path obstacle_2 = new Path();
+	private Path obstacle_right = new Path();
+	private Path obstacle_left = new Path();
 	private Path obstacle_red = new Path();
 	private Path obstacle_green = new Path();
 	private Path startWall = new Path();
 	
 	public Robot(){
-		obstacle_1.add(new Waypoint(5,7));
-		obstacle_1.add(new Waypoint(6,7));
-		obstacle_1.add(new Waypoint(5,6));
-		obstacle_1.add(new Waypoint(6,6));
-		obstacle_1.add(new Waypoint(5,5));
-		obstacle_1.add(new Waypoint(6,5));
+		obstacle_right.add(new Waypoint(5,7));
+		obstacle_right.add(new Waypoint(6,7));
+		obstacle_right.add(new Waypoint(5,6));
+		obstacle_right.add(new Waypoint(6,6));
+		obstacle_right.add(new Waypoint(5,5));
+		obstacle_right.add(new Waypoint(6,5));
 		
-		obstacle_2.add(new Waypoint(4,7));
-		obstacle_2.add(new Waypoint(3,7));
-		obstacle_2.add(new Waypoint(4,6));
-		obstacle_2.add(new Waypoint(3,6));
-		obstacle_2.add(new Waypoint(4,5));
-		obstacle_2.add(new Waypoint(3,5));
+		obstacle_left.add(new Waypoint(4,7));
+		obstacle_left.add(new Waypoint(3,7));
+		obstacle_left.add(new Waypoint(4,6));
+		obstacle_left.add(new Waypoint(3,6));
+		obstacle_left.add(new Waypoint(4,5));
+		obstacle_left.add(new Waypoint(3,5));
 		
 		obstacle_green.add(new Waypoint(12,7));
 		obstacle_green.add(new Waypoint(13,7));
@@ -110,9 +112,11 @@ public class Robot {
 		navigator.showPose();
 	}
 	
-	public int naviagateToBox(){
+	public int naviagateToBox(String obstaclePos){
 		Waypoint goal = new Waypoint(7,8);
-		aStar.addBlock(obstacle_1);
+		if(obstaclePos.equals("left")){aStar.addBlock(obstacle_left);}
+		else if(obstaclePos.equals("right")){aStar.addBlock(obstacle_right);}
+		
 		aStar.addBlock(startWall);
 		
 		Path path = aStar.findPath(currentPos, goal);
@@ -129,7 +133,7 @@ public class Robot {
 	}
 	
 	public void naviagateToBase(int color){
-		Waypoint goal = new Waypoint(10,2);
+		Waypoint goal = new Waypoint(10,1);
 		if(color==0){aStar.addBlock(obstacle_red);}
 		else if(color==1){aStar.addBlock(obstacle_green);}
 		
@@ -241,32 +245,39 @@ public class Robot {
 		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
 		setDefaultSpeed();
 		pilot.travel(distanceToTravel, false);
-		pilot.rotate(-90);
+		navigator.addWaypoint(poseProvider.getPose().getX(), poseProvider.getPose().getY(),-90);
+		navigator.followPath();
+		navigator.waitForStop();
 		
 		currentPos = new Waypoint(closestStrip[1], closestStrip[2]);
 		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,0));
 	}
 
 	private int getInAndOutBox(){
-		float distToBoxCenter = 5;
+		float distToBoxCenter = 7;
 		int color = 2 ;
 		pilot.travel(distToBoxCenter, false);
-		pilot.rotate(90, false);
+		navigator.rotateTo(90);
 		
-		pilot.setLinearAcceleration(2);
-		pilot.setLinearSpeed(2);
+		pilot.setLinearAcceleration(5);
+		pilot.setLinearSpeed(5);
 		pilot.travel(100, true);
 		
-		float[] sample = new float[touchMode.sampleSize()];
-		touchMode.fetchSample(sample, 0);
-		while(sample[0]==0){
-			touchMode.fetchSample(sample, 0);
+		float[] sampleLeft = new float[touchModeLeft.sampleSize()];
+		float[] sampleRight = new float[touchModeRight.sampleSize()];
+		touchModeLeft.fetchSample(sampleLeft, 0);
+		touchModeRight.fetchSample(sampleRight, 0);
+		while(sampleLeft[0]==0 && sampleRight[0]==0){
+			touchModeLeft.fetchSample(sampleLeft, 0);
+			touchModeRight.fetchSample(sampleRight, 0);
 		}
 		float distBackUp = pilot.getMovement().getDistanceTraveled();
 		pilot.stop();
 		setDefaultSpeed();
 		
 		Delay.msDelay(50);
+		
+		float[] sample = new float[colorMode.sampleSize()];
 		colorMode.fetchSample(sample, 0);
 		while(sample[0]!=0 && sample[0]!=1){
 			if(sample[0]==0){color=0;}//Red
@@ -275,7 +286,7 @@ public class Robot {
 		}
 		
 		pilot.travel(-distBackUp, false);
-		pilot.rotate(-90, false);
+		navigator.rotateTo(0);
 		pilot.travel(-distToBoxCenter, false);
 		
         return color;
@@ -299,11 +310,6 @@ public class Robot {
 			waypoint.setLocation(waypoint.getX()*gridXlen, waypoint.getY()*gridYlen);
 		}
 		return gridPath;
-    }
-	
-	public Waypoint gridToReal(Waypoint gridwaypoint){
-		Waypoint temp = new Waypoint(gridwaypoint.getX()*gridXlen, gridwaypoint.getY()*gridYlen);
-		return temp;
     }
 	
 }
