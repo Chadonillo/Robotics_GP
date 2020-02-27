@@ -1,17 +1,21 @@
 package T2;  
 
 import lejos.hardware.Button;
+import lejos.hardware.lcd.LCD;
 
 public class MainProject {
 	public static void main(String[] args){
+		Robot wallz = new Robot();
 		while(!Button.ESCAPE.isDown()){
-			while(!Button.ENTER.isDown()){;}
-			Robot wallz = new Robot();
+			LCD.clear();
+			LCD.drawString("Enter To Start", 0, 1);
+			while(!Button.ENTER.isDown()){;} 
+			wallz.reset();
 			wallz.centralizeOnStripBox();
 			int stripPos = wallz.localize();
 			wallz.getOnGridFromStrip(stripPos);
-			int color = wallz.naviagateToBox("left");
-			wallz.naviagateToBase(color);
+			int color = wallz.navigateToBox("left");
+			wallz.navigateToBase(color);
 			wallz.showPose();
 		}
 	}

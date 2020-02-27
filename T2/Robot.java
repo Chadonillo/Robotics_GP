@@ -25,9 +25,9 @@ public class Robot {
 	private Waypoint currentPos;
 	
 	private static int baseSpeed = 20;
-	private static int baseAcceleration = 10;
+	private static int baseAcceleration = 20;
 	private static int baseAngleSpeed = 40;
-	private static int baseAngleAcceleration = 20;
+	private static int baseAngleAcceleration = 40;
 	
 	private double minWhite = 0.4;
 	private double maxBlue = 0.15;
@@ -100,7 +100,16 @@ public class Robot {
 		startWall.add(new Waypoint(10,1));
 		startWall.add(new Waypoint(10,0));
 	}
-
+	
+	public void reset(){
+		LCD.clear();
+		gyroSensor.reset();
+		pilot = new MovePilot(chassis);
+		poseProvider = new GyroPoseProvider(pilot, gyroSensor);
+		navigator = new CustomNavigator(pilot, poseProvider);
+		aStar = new AStar(); 
+	}
+	
 	public void setDefaultSpeed(){
 		pilot.setAngularAcceleration(baseAngleAcceleration);
 		pilot.setLinearAcceleration(baseAcceleration);
@@ -112,7 +121,7 @@ public class Robot {
 		navigator.showPose();
 	}
 	
-	public int naviagateToBox(String obstaclePos){
+	public int navigateToBox(String obstaclePos){
 		Waypoint goal = new Waypoint(7,8);
 		if(obstaclePos.equals("left")){aStar.addBlock(obstacle_left);}
 		else if(obstaclePos.equals("right")){aStar.addBlock(obstacle_right);}
@@ -132,7 +141,7 @@ public class Robot {
 		return color;
 	}
 	
-	public void naviagateToBase(int color){
+	public void navigateToBase(int color){
 		Waypoint goal = new Waypoint(10,1);
 		if(color==0){aStar.addBlock(obstacle_red);}
 		else if(color==1){aStar.addBlock(obstacle_green);}
@@ -141,6 +150,18 @@ public class Robot {
 		navigator.setPath(gridToReal(path));
 		navigator.followPath();
 		navigator.waitForStop();
+		
+		navigator.rotateTo(270);
+		float[] sampleLeft = new float[touchModeLeft.sampleSize()];
+		float[] sampleRight = new float[touchModeRight.sampleSize()];
+		touchModeLeft.fetchSample(sampleLeft, 0);
+		touchModeRight.fetchSample(sampleRight, 0);
+		pilot.travel(50, true);
+		while(sampleLeft[0]==0 && sampleRight[0]==0){
+			touchModeLeft.fetchSample(sampleLeft, 0);
+			touchModeRight.fetchSample(sampleRight, 0);
+		}
+		pilot.stop();
 	}
 	
 	public void testNavSquare(int len){
@@ -163,6 +184,11 @@ public class Robot {
 		pilot.rotate(360, true);
 	}
 	
+	public void testNavRotation(){
+		poseProvider.setPose(new Pose(0,0,0));
+		navigator.rotateTo(270);
+	}
+	
 	public void resetStrip(){
 		theMainStrip.resetProbs();
 	}
@@ -177,9 +203,9 @@ public class Robot {
 	}
 	
 	public void touchValues(){
-        float[] sample = new float[touchMode.sampleSize()];
+        float[] sample = new float[touchModeLeft.sampleSize()];
 		while(!Button.ENTER.isDown()){
-			touchMode.fetchSample(sample, 0);
+			touchModeLeft.fetchSample(sample, 0);
 	        LCD.drawString(sample[0]+"          ", 0, 3);
 	        Delay.msDelay(10);
 		}
@@ -245,10 +271,7 @@ public class Robot {
 		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
 		setDefaultSpeed();
 		pilot.travel(distanceToTravel, false);
-		navigator.addWaypoint(poseProvider.getPose().getX(), poseProvider.getPose().getY(),-90);
-		navigator.followPath();
-		navigator.waitForStop();
-		
+		navigator.rotateTo(270);
 		currentPos = new Waypoint(closestStrip[1], closestStrip[2]);
 		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,0));
 	}
@@ -256,6 +279,7 @@ public class Robot {
 	private int getInAndOutBox(){
 		float distToBoxCenter = 7;
 		int color = 2 ;
+		navigator.rotateTo(0);
 		pilot.travel(distToBoxCenter, false);
 		navigator.rotateTo(90);
 		
@@ -273,19 +297,19 @@ public class Robot {
 		}
 		float distBackUp = pilot.getMovement().getDistanceTraveled();
 		pilot.stop();
-		setDefaultSpeed();
 		
 		Delay.msDelay(50);
 		
 		float[] sample = new float[colorMode.sampleSize()];
 		colorMode.fetchSample(sample, 0);
-		while(sample[0]!=0 && sample[0]!=1){
+		while(color==2){
 			if(sample[0]==0){color=0;}//Red
 			else if(sample[0]==1){color=1;}//Green
 			colorMode.fetchSample(sample, 0);
 		}
 		
 		pilot.travel(-distBackUp, false);
+		setDefaultSpeed();
 		navigator.rotateTo(0);
 		pilot.travel(-distToBoxCenter, false);
 		

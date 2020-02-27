@@ -91,14 +91,24 @@ public class CustomNavigator implements WaypointListener{
 	}
 	
 	public boolean rotateTo(double angle){
-	    float head = getPoseProvider().getPose().getHeading();
-	    double diff = angle - head;
+		int maxBearingFix = 10;
+		int bearingFixCounter = 0;
+		float maxRotationError = 0.5f;
+		Pose currPose = poseProvider.getPose();
+		
+	    double diff = angle - currPose.getHeading()%360;
 	    while(diff > 180) diff = diff - 360;
 	    while(diff < -180) diff = diff + 360;
 	    if(isMoving()) return false;
-	    if(_pilot instanceof RotateMoveController){
-	    	((RotateMoveController) _pilot).rotate(diff,false);
-	    }
+	    
+	    while(!nearllyEqual(angle,currPose.getHeading()%360,maxRotationError) && bearingFixCounter<maxBearingFix){
+        	bearingFixCounter+=1;
+        	((RotateMoveController) _pilot).rotate(diff,false);
+        	currPose = poseProvider.getPose();
+    	    diff = angle - currPose.getHeading()%360;
+    	    while(diff > 180) diff = diff - 360;
+    	    while(diff < -180) diff = diff + 360;
+        }
 	    return true;   
     }
 	
