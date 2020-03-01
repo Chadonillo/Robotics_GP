@@ -110,6 +110,23 @@ public class Robot {
 		aStar = new AStar(); 
 	}
 	
+	public String setFirstObstacle(){
+		String obstacle = null;
+		LCD.clear();
+		LCD.drawString("  Left Obstacle", 0, 3);
+		LCD.drawString("        Or       ", 0, 4);
+		LCD.drawString("  Right Obstacle", 0, 5);
+		while(obstacle==null){
+			if(Button.LEFT.isDown()){obstacle="left";}
+			else if(Button.RIGHT.isDown()){obstacle="right";}
+		}
+		LCD.clear();
+		LCD.drawString("  Place Wallz On ", 0, 3);
+		LCD.drawString("   Strip. Press  ", 0, 4);
+		LCD.drawString("  Enter To Start ", 0, 5);
+		return obstacle;
+	}
+	
 	public void setDefaultSpeed(){
 		pilot.setAngularAcceleration(baseAngleAcceleration);
 		pilot.setLinearAcceleration(baseAcceleration);
@@ -118,6 +135,7 @@ public class Robot {
 	}
 	
 	public void showPose(){
+		LCD.clear();
 		navigator.showPose();
 	}
 	
@@ -252,15 +270,15 @@ public class Robot {
         	lightMode.fetchSample(sample, 0);
             boolean isBlue = false;
             if (sample[0] < maxBlue){isBlue = true;}
-            if(isBlue){LCD.drawString("Blue             ", 0, 7);}
-            else{LCD.drawString("white             ", 0, 7);}
+            //if(isBlue){LCD.drawString("Blue             ", 0, 7);}
+            //else{LCD.drawString("white             ", 0, 7);}
             if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}
             if(theMainStrip.getLocation()+1==10 && theMainStrip.getHighestProbability()>= 0.4){movingForward=true;}
             if(movingForward){pilot.travel(boxLenght, false);}
             else{pilot.travel(-boxLenght, false);}
             theMainStrip.setBayesianProbabilities(movingForward, isBlue, sensorProbability, 1);
         }
-        LCD.drawString("Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 0);
+        LCD.drawString("  Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 4);
         Sound.beep();
         return (theMainStrip.getLocation()+1-2);
     }
@@ -303,16 +321,21 @@ public class Robot {
 		float[] sample = new float[colorMode.sampleSize()];
 		colorMode.fetchSample(sample, 0);
 		while(color==2){
-			if(sample[0]==0){color=0;}//Red
-			else if(sample[0]==1){color=1;}//Green
+			if(sample[0]==0){//Red
+				LCD.drawString("   Strip: Red", 0, 7);
+				color=0;
+			}
+			else if(sample[0]==1){//Green
+				LCD.drawString("   Strip: Green", 0, 7);
+				color=1;
+			}
 			colorMode.fetchSample(sample, 0);
 		}
-		
+		Sound.beep();
 		pilot.travel(-distBackUp, false);
 		setDefaultSpeed();
 		navigator.rotateTo(0);
 		pilot.travel(-distToBoxCenter, false);
-		
         return color;
 	}
 	
