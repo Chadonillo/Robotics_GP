@@ -1,4 +1,5 @@
 package T2;
+
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
 import lejos.utility.Delay;
@@ -7,40 +8,44 @@ import lejos.hardware.Sound;
 import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
+import lejos.hardware.sensor.EV3TouchSensor;
 import lejos.hardware.sensor.SensorMode;
-import lejos.robotics.Color;
-import lejos.robotics.SampleProvider;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.robotics.navigation.*;
+import lejos.robotics.pathfinding.Path;
 import lejos.robotics.chassis.*;
-import lejos.robotics.filter.LinearCalibrationFilter;
 
 public class Robot {
 	private static double wheelDiameter = 5.6;
 	private static double boxLenght = 1.75;
 	private static double robotOffset = 5.15;
 	
-	private static float gridXlen = 9.5f;
+	private Waypoint currentPos;
+	
+	private static int baseSpeed = 20;
+	private static int baseAcceleration = 20;
+	private static int baseAngleSpeed = 40;
+	private static int baseAngleAcceleration = 40;
+	
+	private double minWhite = 0.4;
+	private double maxBlue = 0.15;
+	
+	private static float gridXlen = 10.83f;
 	private static float gridYlen = 9.5f;
-	
-	private static int baseSpeed = 10;
-	private static int baseAcceleration = 5;
-	private static int baseAngleSpeed = 20;
-	private static int baseAngleAcceleration = 10;
-	
-
-	double minWhite = 0.4;
-	double maxBlue = 0.15;
 	
 	private TheStrip theMainStrip = new TheStrip();
 	
 	private EV3ColorSensor colorSensor = new EV3ColorSensor(SensorPort.S1);
 	private SensorMode lightMode = colorSensor.getRedMode();
-	private LinearCalibrationFilter  calibratorLight  =  new LinearCalibrationFilter (lightMode);
+	private SensorMode colorMode = colorSensor.getColorIDMode();
 	
-	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S3);
+	private EV3GyroSensor gyroSensor = new EV3GyroSensor(SensorPort.S4);
+	private EV3TouchSensor touchSensorLeft = new EV3TouchSensor(SensorPort.S2);
+	private SensorMode touchModeLeft = touchSensorLeft.getTouchMode();
+	private EV3TouchSensor touchSensorRight = new EV3TouchSensor(SensorPort.S3);
+	private SensorMode touchModeRight = touchSensorRight.getTouchMode();
 	
 	private EV3LargeRegulatedMotor motorL = new EV3LargeRegulatedMotor(MotorPort.A);
 	private EV3LargeRegulatedMotor motorR = new EV3LargeRegulatedMotor(MotorPort.D);
@@ -49,8 +54,78 @@ public class Robot {
 	private Chassis chassis = new WheeledChassis(new Wheel[]{wheelR, wheelL},WheeledChassis.TYPE_DIFFERENTIAL);
 	MovePilot pilot = new MovePilot(chassis);
 	
-	GyroPoseProvider poseProvider = new GyroPoseProvider(pilot, gyroSensor);
-	CustomNavigator navigator = new CustomNavigator(pilot, poseProvider);
+	private GyroPoseProvider poseProvider = new GyroPoseProvider(pilot, gyroSensor);
+	private CustomNavigator navigator = new CustomNavigator(pilot, poseProvider);
+	private AStar aStar = new AStar(); 
+
+	private Path obstacle_right = new Path();
+	private Path obstacle_left = new Path();
+	private Path obstacle_red = new Path();
+	private Path obstacle_green = new Path();
+	private Path startWall = new Path();
+	
+	public Robot(){
+		obstacle_right.add(new Waypoint(5,7));
+		obstacle_right.add(new Waypoint(6,7));
+		obstacle_right.add(new Waypoint(5,6));
+		obstacle_right.add(new Waypoint(6,6));
+		obstacle_right.add(new Waypoint(5,5));
+		obstacle_right.add(new Waypoint(6,5));
+		
+		obstacle_left.add(new Waypoint(4,7));
+		obstacle_left.add(new Waypoint(3,7));
+		obstacle_left.add(new Waypoint(4,6));
+		obstacle_left.add(new Waypoint(3,6));
+		obstacle_left.add(new Waypoint(4,5));
+		obstacle_left.add(new Waypoint(3,5));
+		
+		obstacle_green.add(new Waypoint(12,7));
+		obstacle_green.add(new Waypoint(13,7));
+		obstacle_green.add(new Waypoint(12,6));
+		obstacle_green.add(new Waypoint(13,6));
+		obstacle_green.add(new Waypoint(12,5));
+		obstacle_green.add(new Waypoint(13,5));
+		
+		obstacle_red.add(new Waypoint(14,7));
+		obstacle_red.add(new Waypoint(15,7));
+		obstacle_red.add(new Waypoint(14,6));
+		obstacle_red.add(new Waypoint(15,6));
+		obstacle_red.add(new Waypoint(14,5));
+		obstacle_red.add(new Waypoint(15,5));
+		
+		startWall.add(new Waypoint(10,5));
+		startWall.add(new Waypoint(10,4));
+		startWall.add(new Waypoint(10,3));
+		startWall.add(new Waypoint(10,2));
+		startWall.add(new Waypoint(10,1));
+		startWall.add(new Waypoint(10,0));
+	}
+	
+	public void reset(){
+		LCD.clear();
+		gyroSensor.reset();
+		pilot = new MovePilot(chassis);
+		poseProvider = new GyroPoseProvider(pilot, gyroSensor);
+		navigator = new CustomNavigator(pilot, poseProvider);
+		aStar = new AStar(); 
+	}
+	
+	public String setFirstObstacle(){
+		String obstacle = null;
+		LCD.clear();
+		LCD.drawString("  Left Obstacle", 0, 3);
+		LCD.drawString("        Or       ", 0, 4);
+		LCD.drawString("  Right Obstacle", 0, 5);
+		while(obstacle==null){
+			if(Button.LEFT.isDown()){obstacle="left";}
+			else if(Button.RIGHT.isDown()){obstacle="right";}
+		}
+		LCD.clear();
+		LCD.drawString("  Place Wallz On ", 0, 3);
+		LCD.drawString("   Strip. Press  ", 0, 4);
+		LCD.drawString("  Enter To Start ", 0, 5);
+		return obstacle;
+	}
 	
 	public void setDefaultSpeed(){
 		pilot.setAngularAcceleration(baseAngleAcceleration);
@@ -60,18 +135,51 @@ public class Robot {
 	}
 	
 	public void showPose(){
+		LCD.clear();
 		navigator.showPose();
 	}
 	
-	public void naviagate(){
-		navigator.addWaypoint(4*gridXlen,4*gridYlen);
-		navigator.addWaypoint(3*gridXlen,5*gridYlen);
-		navigator.addWaypoint(3*gridXlen,7*gridYlen);
-		navigator.addWaypoint(4*gridXlen,8*gridYlen);
-		navigator.addWaypoint(8*gridXlen,8*gridYlen);
-		navigator.addWaypoint(8*gridXlen,10*gridYlen);
-		navigator.followPath();
+	public int navigateToBox(String obstaclePos){
+		Waypoint goal = new Waypoint(7,8);
+		if(obstaclePos.equals("left")){aStar.addBlock(obstacle_left);}
+		else if(obstaclePos.equals("right")){aStar.addBlock(obstacle_right);}
 		
+		aStar.addBlock(startWall);
+		
+		Path path = aStar.findPath(currentPos, goal);
+		aStar.removeBlock(startWall);
+		navigator.setPath(gridToReal(path));
+		navigator.followPath();
+		navigator.waitForStop();
+		currentPos = goal;
+		
+		int color = getInAndOutBox();
+		
+		poseProvider.setPose(new Pose((float)currentPos.getX()*gridXlen,(float)currentPos.getY()*gridYlen,0));
+		return color;
+	}
+	
+	public void navigateToBase(int color){
+		Waypoint goal = new Waypoint(10,1);
+		if(color==0){aStar.addBlock(obstacle_red);}
+		else if(color==1){aStar.addBlock(obstacle_green);}
+		
+		Path path = aStar.findPath(currentPos, goal);
+		navigator.setPath(gridToReal(path));
+		navigator.followPath();
+		navigator.waitForStop();
+		
+		navigator.rotateTo(270);
+		float[] sampleLeft = new float[touchModeLeft.sampleSize()];
+		float[] sampleRight = new float[touchModeRight.sampleSize()];
+		touchModeLeft.fetchSample(sampleLeft, 0);
+		touchModeRight.fetchSample(sampleRight, 0);
+		pilot.travel(50, true);
+		while(sampleLeft[0]==0 && sampleRight[0]==0){
+			touchModeLeft.fetchSample(sampleLeft, 0);
+			touchModeRight.fetchSample(sampleRight, 0);
+		}
+		pilot.stop();
 	}
 	
 	public void testNavSquare(int len){
@@ -94,90 +202,141 @@ public class Robot {
 		pilot.rotate(360, true);
 	}
 	
-	public void testNavStraight(int len){
-		navigator.addWaypoint(len, 0);
-		navigator.followPath();
-	}
-	
-	public void testPilotStraight(int len){
-		pilot.travel(len, true);
-	}
-	
-	public void testZigZagNav(int len, int limit){
+	public void testNavRotation(){
 		poseProvider.setPose(new Pose(0,0,0));
-		navigator.addWaypoint(len, 0);
-		for (int i=1; i<=limit; i+=2){
-			navigator.addWaypoint(len, len*i);
-			navigator.addWaypoint(0, len*i);
-			navigator.addWaypoint(0, len*(i+1));
-			navigator.addWaypoint(len, len*(i+1));
-		}
-		navigator.addWaypoint(0, 0, 0);
-		navigator.followPath();
+		navigator.rotateTo(270);
 	}
 	
-	public void test(){
-		setDefaultSpeed();
-		navigator.addWaypoint(0, 0, 0);
-		navigator.addWaypoint(30, 0);
-		navigator.addWaypoint(60, 10, 0);
-		navigator.followPath();
-	}
-
 	public void resetStrip(){
 		theMainStrip.resetProbs();
 	}
 	
 	public void infraRedValues(){
-        float[] sample = new float[calibratorLight.sampleSize()];
-        colorSensor.setFloodlight(Color.WHITE);
-        colorSensor.setFloodlight(true);
-        if(colorSensor.isFloodlightOn())LCD.drawString("It is On          ", 0, 1);
-        else LCD.drawString("It is Off          ", 0, 1);
+        float[] sample = new float[lightMode.sampleSize()];
 		while(!Button.ENTER.isDown()){
-			calibratorLight.fetchSample(sample, 0);
+			lightMode.fetchSample(sample, 0);
 	        LCD.drawString(sample[0]+"          ", 0, 3);
 	        Delay.msDelay(10);
 		}
 	}
 	
-	public void gyroValues(boolean reset){
-		if(reset)gyroSensor.reset();
-		SampleProvider angleMode = gyroSensor.getAngleMode();
-        float[] sample = new float[angleMode.sampleSize()];
+	public void touchValues(){
+        float[] sample = new float[touchModeLeft.sampleSize()];
 		while(!Button.ENTER.isDown()){
-			angleMode.fetchSample(sample, 0);
-	        LCD.drawString("Angle:" +sample[0]+"          ", 0, 3);
-	        Delay.msDelay(50);
+			touchModeLeft.fetchSample(sample, 0);
+	        LCD.drawString(sample[0]+"          ", 0, 3);
+	        Delay.msDelay(10);
 		}
 	}
 	
-	public void calibrateLightSensor(){
-		pilot.setLinearSpeed(1);
-		float[] sample = new float[lightMode.sampleSize()];
-		LCD.drawString("Press Enter To", 0, 3);
-		LCD.drawString("Start Calibration", 0, 5);
-		Button.waitForAnyPress();
-		LCD.clear();
-		Delay.msDelay(500);
-		
-		calibratorLight.setScaleCalibration(0, 1);
-		calibratorLight.startCalibration();
-		LCD.drawString("Sensor Calibration", 0, 3);
+	public void centralizeOnStripBox(){
+		pilot.setLinearSpeed(4);
+		double getToColorMin=minWhite;
+    	double getToColorMax=1.0;
+    	
+        float[] sample = new float[lightMode.sampleSize()];
+        lightMode.fetchSample(sample, 0);
+        double startColor = sample[0];
+        
+        if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
+        	pilot.travel(boxLenght/2, false);
+        	Delay.msDelay(500);
+        	lightMode.fetchSample(sample, 0);
+        	startColor = sample[0];	
+        }
+        if(startColor>minWhite){ //if we are on white. go to blue
+        	getToColorMin = 0.0;
+        	getToColorMax = maxBlue;
+        }
+        pilot.stop();
+        pilot.travel(10,true);
+        while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
+        	lightMode.fetchSample(sample, 0);
+        }
+        float dist = pilot.getMovement().getDistanceTraveled();
+        pilot.stop();
+        int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
+        pilot.travel(-boxLenght*moveBackSteps, false);
+	}
+	
+	public int localize(){
+		pilot.setLinearSpeed(4);
+		this.resetStrip();
+        double sensorProbability = 0.95;
+        
+        float[] sample = new float[lightMode.sampleSize()];
+        boolean movingForward = true;
+        while(theMainStrip.getHighestProbability() < 0.85 && !Button.ESCAPE.isDown()) {
+        	lightMode.fetchSample(sample, 0);
+            boolean isBlue = false;
+            if (sample[0] < maxBlue){isBlue = true;}
+            //if(isBlue){LCD.drawString("Blue             ", 0, 7);}
+            //else{LCD.drawString("white             ", 0, 7);}
+            if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}
+            if(theMainStrip.getLocation()+1==10 && theMainStrip.getHighestProbability()>= 0.4){movingForward=true;}
+            if(movingForward){pilot.travel(boxLenght, false);}
+            else{pilot.travel(-boxLenght, false);}
+            theMainStrip.setBayesianProbabilities(movingForward, isBlue, sensorProbability, 1);
+        }
+        LCD.drawString("  Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 4);
+        Sound.beep();
+        return (theMainStrip.getLocation()+1-2);
+    }
+	
+	public void getOnGridFromStrip(int gridPosition){
+		int[][] stripPositionsOnGrid = {{11,9,2},{18,9,3},{24,9,4},{31,9,5}}; //stripNumber, GridX, GridY
+		int[] closestStrip = closest(gridPosition, stripPositionsOnGrid);
+		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
+		setDefaultSpeed();
+		pilot.travel(distanceToTravel, false);
+		navigator.rotateTo(270);
+		currentPos = new Waypoint(closestStrip[1], closestStrip[2]);
+		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,0));
+	}
 
-		pilot.travel(10, true);		
-		while(pilot.isMoving()){
-			calibratorLight.fetchSample(sample,  0);
-		}
-		calibratorLight.stopCalibration();
-		LCD.drawString("Calibration Complete", 0, 3);
-		Delay.msDelay(1000);
-		LCD.clear();
+	private int getInAndOutBox(){
+		float distToBoxCenter = 7;
+		int color = 2 ;
+		navigator.rotateTo(0);
+		pilot.travel(distToBoxCenter, false);
+		navigator.rotateTo(90);
 		
-		while(!Button.ENTER.isDown()){
-			calibratorLight.fetchSample(sample, 0);
-	        LCD.drawString("" +sample[0]+"          ", 0, 3);
+		pilot.setLinearAcceleration(5);
+		pilot.setLinearSpeed(5);
+		pilot.travel(100, true);
+		
+		float[] sampleLeft = new float[touchModeLeft.sampleSize()];
+		float[] sampleRight = new float[touchModeRight.sampleSize()];
+		touchModeLeft.fetchSample(sampleLeft, 0);
+		touchModeRight.fetchSample(sampleRight, 0);
+		while(sampleLeft[0]==0 && sampleRight[0]==0){
+			touchModeLeft.fetchSample(sampleLeft, 0);
+			touchModeRight.fetchSample(sampleRight, 0);
 		}
+		float distBackUp = pilot.getMovement().getDistanceTraveled();
+		pilot.stop();
+		
+		Delay.msDelay(50);
+		
+		float[] sample = new float[colorMode.sampleSize()];
+		colorMode.fetchSample(sample, 0);
+		while(color==2){
+			if(sample[0]==0){//Red
+				LCD.drawString("   Strip: Red", 0, 7);
+				color=0;
+			}
+			else if(sample[0]==1){//Green
+				LCD.drawString("   Strip: Green", 0, 7);
+				color=1;
+			}
+			colorMode.fetchSample(sample, 0);
+		}
+		Sound.beep();
+		pilot.travel(-distBackUp, false);
+		setDefaultSpeed();
+		navigator.rotateTo(0);
+		pilot.travel(-distToBoxCenter, false);
+        return color;
 	}
 	
 	private int[] closest(int of, int[][] in) {
@@ -193,70 +352,11 @@ public class Robot {
 	    return closest;
 	}
     
-	public void centralizeOnStripBox(){
-		pilot.setLinearSpeed(4);
-		double getToColorMin=minWhite;
-    	double getToColorMax=1.0;
-    	
-        float[] sample = new float[calibratorLight.sampleSize()];
-        calibratorLight.fetchSample(sample, 0);
-        double startColor = sample[0];
-        
-        if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
-        	pilot.travel(boxLenght/2, false);
-        	Delay.msDelay(500);
-        	calibratorLight.fetchSample(sample, 0);
-        	startColor = sample[0];	
-        }
-        if(startColor>minWhite){ //if we are on white. go to blue
-        	getToColorMin = 0.0;
-        	getToColorMax = maxBlue;
-        }
-        pilot.stop();
-        pilot.travel(10,true);
-        while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
-        	calibratorLight.fetchSample(sample, 0);
-        }
-        float dist = pilot.getMovement().getDistanceTraveled();
-        pilot.stop();
-        int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
-        pilot.travel(-boxLenght*moveBackSteps, false);
-	}
-	
-	public int localize(){
-		pilot.setLinearSpeed(4);
-		this.resetStrip();
-        double sensorProbability = 0.95;
-        
-        float[] sample = new float[calibratorLight.sampleSize()];
-        boolean movingForward = true;
-        while(theMainStrip.getHighestProbability() < 0.85 && !Button.ESCAPE.isDown()) {
-        	calibratorLight.fetchSample(sample, 0);
-            boolean isBlue = false;
-            if (sample[0] < maxBlue){isBlue = true;}
-            if(isBlue){LCD.drawString("Blue             ", 0, 7);}
-            else{LCD.drawString("white             ", 0, 7);}
-            if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}
-            if(theMainStrip.getLocation()+1==10 && theMainStrip.getHighestProbability()>= 0.4){movingForward=true;}
-            if(movingForward){pilot.travel(boxLenght, false);}
-            else{pilot.travel(-boxLenght, false);}
-            theMainStrip.setBayesianProbabilities(movingForward, isBlue, sensorProbability, 1);
-        }
-        LCD.drawString("Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 0);
-        Sound.beep();
-        return (theMainStrip.getLocation()+1-2);
+	private Path gridToReal(Path gridPath){
+    	for (Waypoint waypoint : gridPath) {
+			waypoint.setLocation(waypoint.getX()*gridXlen, waypoint.getY()*gridYlen);
+		}
+		return gridPath;
     }
 	
-	public void getOnGridFromStrip(int gridPosition){
-		int[][] stripPositionsOnGrid = {{11,8,2},{18,8,3},{24,8,4},{31,8,5}}; //stripNumber, GridX, GridY
-		int[] closestStrip = closest(gridPosition, stripPositionsOnGrid);
-		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
-		setDefaultSpeed();
-		pilot.travel(distanceToTravel, false);
-		
-		pilot.rotate(90);
-		pilot.travel(gridXlen);
-		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,180));
-	}
-
 }
