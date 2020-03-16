@@ -93,7 +93,7 @@ public class CustomNavigator implements WaypointListener{
 	public boolean rotateTo(double angle){
 		int maxBearingFix = 10;
 		int bearingFixCounter = 0;
-		float maxRotationError = 0.5f;
+		float maxRotationError = 0.2f;
 		Pose currPose = poseProvider.getPose();
 		
 	    double diff = angle - currPose.getHeading()%360;
@@ -197,7 +197,7 @@ public class CustomNavigator implements WaypointListener{
 		float achiveBearing;
 		int maxBearingFix = 10;
 		int bearingFixCounter = 0;
-		float maxRotationError = 0.5f;
+		float maxRotationError = 0.2f;
 		
 	    @Override
 		public void run(){ 

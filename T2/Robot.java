@@ -32,8 +32,8 @@ public class Robot {
 	private double minWhite = 0.4;
 	private double maxBlue = 0.15;
 	
-	private static float gridXlen = 10.83f;
-	private static float gridYlen = 9.5f;
+	private static float gridXlen = 5.2f; //10.83f
+	private static float gridYlen = 4.6216f; //9.5f
 	
 	private TheStrip theMainStrip = new TheStrip();
 	
@@ -65,40 +65,88 @@ public class Robot {
 	private Path startWall = new Path();
 	
 	public Robot(){
-		obstacle_right.add(new Waypoint(5,7));
-		obstacle_right.add(new Waypoint(6,7));
-		obstacle_right.add(new Waypoint(5,6));
-		obstacle_right.add(new Waypoint(6,6));
-		obstacle_right.add(new Waypoint(5,5));
-		obstacle_right.add(new Waypoint(6,5));
+		obstacle_right.add(new Waypoint(8,10));
+		obstacle_right.add(new Waypoint(8,11));
+		obstacle_right.add(new Waypoint(8,12));
+		obstacle_right.add(new Waypoint(8,13));
+		obstacle_right.add(new Waypoint(8,14));
+		obstacle_right.add(new Waypoint(9,14));
+		obstacle_right.add(new Waypoint(10,14));
+		obstacle_right.add(new Waypoint(11,14));
+		obstacle_right.add(new Waypoint(12,14));
+		obstacle_right.add(new Waypoint(13,14));
+		obstacle_right.add(new Waypoint(13,13));
+		obstacle_right.add(new Waypoint(13,12));
+		obstacle_right.add(new Waypoint(13,11));
+		obstacle_right.add(new Waypoint(13,10));
+		obstacle_right.add(new Waypoint(12,10));
+		obstacle_right.add(new Waypoint(11,10));
+		obstacle_right.add(new Waypoint(10,10));
+		obstacle_right.add(new Waypoint(9,10));
 		
-		obstacle_left.add(new Waypoint(4,7));
-		obstacle_left.add(new Waypoint(3,7));
-		obstacle_left.add(new Waypoint(4,6));
-		obstacle_left.add(new Waypoint(3,6));
-		obstacle_left.add(new Waypoint(4,5));
-		obstacle_left.add(new Waypoint(3,5));
+		obstacle_left.add(new Waypoint(5,10));
+		obstacle_left.add(new Waypoint(5,11));
+		obstacle_left.add(new Waypoint(5,12));
+		obstacle_left.add(new Waypoint(5,13));
+		obstacle_left.add(new Waypoint(5,14));
+		obstacle_left.add(new Waypoint(6,14));
+		obstacle_left.add(new Waypoint(7,14));
+		obstacle_left.add(new Waypoint(8,14));
+		obstacle_left.add(new Waypoint(8,13));
+		obstacle_left.add(new Waypoint(8,12));
+		obstacle_left.add(new Waypoint(8,11));
+		obstacle_left.add(new Waypoint(8,10));
+		obstacle_left.add(new Waypoint(7,10));
+		obstacle_left.add(new Waypoint(6,10));
 		
-		obstacle_green.add(new Waypoint(12,7));
-		obstacle_green.add(new Waypoint(13,7));
-		obstacle_green.add(new Waypoint(12,6));
-		obstacle_green.add(new Waypoint(13,6));
-		obstacle_green.add(new Waypoint(12,5));
-		obstacle_green.add(new Waypoint(13,5));
+		obstacle_green.add(new Waypoint(22,10));
+		obstacle_green.add(new Waypoint(22,11));
+		obstacle_green.add(new Waypoint(22,12));
+		obstacle_green.add(new Waypoint(22,13));
+		obstacle_green.add(new Waypoint(22,14));
+		obstacle_green.add(new Waypoint(23,14));
+		obstacle_green.add(new Waypoint(24,14));
+		obstacle_green.add(new Waypoint(25,14));
+		obstacle_green.add(new Waypoint(26,14));
+		obstacle_green.add(new Waypoint(27,14));
+		obstacle_green.add(new Waypoint(28,14));
+		obstacle_green.add(new Waypoint(28,13));
+		obstacle_green.add(new Waypoint(28,12));
+		obstacle_green.add(new Waypoint(28,11));
+		obstacle_green.add(new Waypoint(28,10));
+		obstacle_green.add(new Waypoint(27,10));
+		obstacle_green.add(new Waypoint(26,10));
+		obstacle_green.add(new Waypoint(25,10));
+		obstacle_green.add(new Waypoint(24,10));
+		obstacle_green.add(new Waypoint(23,10));
 		
-		obstacle_red.add(new Waypoint(14,7));
-		obstacle_red.add(new Waypoint(15,7));
-		obstacle_red.add(new Waypoint(14,6));
-		obstacle_red.add(new Waypoint(15,6));
-		obstacle_red.add(new Waypoint(14,5));
-		obstacle_red.add(new Waypoint(15,5));
+		obstacle_red.add(new Waypoint(28,10));
+		obstacle_red.add(new Waypoint(28,11));
+		obstacle_red.add(new Waypoint(28,12));
+		obstacle_red.add(new Waypoint(28,13));
+		obstacle_red.add(new Waypoint(28,14));
+		obstacle_red.add(new Waypoint(29,14));
+		obstacle_red.add(new Waypoint(30,14));
+		obstacle_red.add(new Waypoint(31,14));
+		obstacle_red.add(new Waypoint(31,13));
+		obstacle_red.add(new Waypoint(31,12));
+		obstacle_red.add(new Waypoint(31,11));
+		obstacle_red.add(new Waypoint(31,10));
+		obstacle_red.add(new Waypoint(30,10));
+		obstacle_red.add(new Waypoint(29,10));
 		
-		startWall.add(new Waypoint(10,5));
-		startWall.add(new Waypoint(10,4));
-		startWall.add(new Waypoint(10,3));
-		startWall.add(new Waypoint(10,2));
-		startWall.add(new Waypoint(10,1));
-		startWall.add(new Waypoint(10,0));
+		startWall.add(new Waypoint(19,11));
+		startWall.add(new Waypoint(19,10));
+		startWall.add(new Waypoint(19,9));
+		startWall.add(new Waypoint(19,8));
+		startWall.add(new Waypoint(19,7));
+		startWall.add(new Waypoint(19,6));
+		startWall.add(new Waypoint(19,5));
+		startWall.add(new Waypoint(19,4));
+		startWall.add(new Waypoint(19,3));
+		startWall.add(new Waypoint(19,2));
+		startWall.add(new Waypoint(19,1));
+		startWall.add(new Waypoint(19,0));
 	}
 	
 	public void reset(){
@@ -140,7 +188,7 @@ public class Robot {
 	}
 	
 	public int navigateToBox(String obstaclePos){
-		Waypoint goal = new Waypoint(7,8);
+		Waypoint goal = new Waypoint(10,19);
 		if(obstaclePos.equals("left")){aStar.addBlock(obstacle_left);}
 		else if(obstaclePos.equals("right")){aStar.addBlock(obstacle_right);}
 		
@@ -155,12 +203,12 @@ public class Robot {
 		
 		int color = getInAndOutBox();
 		
-		poseProvider.setPose(new Pose((float)currentPos.getX()*gridXlen,(float)currentPos.getY()*gridYlen,0));
+		//poseProvider.setPose(new Pose((float)currentPos.getX()*gridXlen,(float)currentPos.getY()*gridYlen,0));
 		return color;
 	}
 	
 	public void navigateToBase(int color){
-		Waypoint goal = new Waypoint(10,1);
+		Waypoint goal = new Waypoint(20,2);
 		if(color==0){aStar.addBlock(obstacle_red);}
 		else if(color==1){aStar.addBlock(obstacle_green);}
 		
@@ -284,7 +332,7 @@ public class Robot {
     }
 	
 	public void getOnGridFromStrip(int gridPosition){
-		int[][] stripPositionsOnGrid = {{11,9,2},{18,9,3},{24,9,4},{31,9,5}}; //stripNumber, GridX, GridY
+		int[][] stripPositionsOnGrid = {{28,18,9},{15,18,5}}; //stripNumber, GridX, GridY
 		int[] closestStrip = closest(gridPosition, stripPositionsOnGrid);
 		double distanceToTravel = (closestStrip[0]-gridPosition)*boxLenght;
 		setDefaultSpeed();
@@ -294,8 +342,8 @@ public class Robot {
 		poseProvider.setPose(new Pose(closestStrip[1]*gridXlen,closestStrip[2]*gridYlen,0));
 	}
 
-	private int getInAndOutBox(){
-		float distToBoxCenter = 7;
+	/*private int getInAndOutBox(){
+		float distToBoxCenter = 0;
 		int color = 2 ;
 		navigator.rotateTo(0);
 		pilot.travel(distToBoxCenter, false);
@@ -336,6 +384,46 @@ public class Robot {
 		setDefaultSpeed();
 		navigator.rotateTo(0);
 		pilot.travel(-distToBoxCenter, false);
+        return color;
+	}*/
+	
+	private int getInAndOutBox(){
+		int color = 2 ;
+		//navigator.rotateTo(45);
+		
+		pilot.setLinearAcceleration(5);
+		pilot.setLinearSpeed(5);
+		pilot.travel(100, true);
+		
+		float[] sampleLeft = new float[touchModeLeft.sampleSize()];
+		float[] sampleRight = new float[touchModeRight.sampleSize()];
+		touchModeLeft.fetchSample(sampleLeft, 0);
+		touchModeRight.fetchSample(sampleRight, 0);
+		while(sampleLeft[0]==0 && sampleRight[0]==0){
+			touchModeLeft.fetchSample(sampleLeft, 0);
+			touchModeRight.fetchSample(sampleRight, 0);
+		}
+		float distBackUp = pilot.getMovement().getDistanceTraveled();
+		pilot.stop();
+		
+		Delay.msDelay(50);
+		
+		float[] sample = new float[colorMode.sampleSize()];
+		colorMode.fetchSample(sample, 0);
+		while(color==2){
+			if(sample[0]==0){//Red
+				LCD.drawString("   Strip: Red", 0, 7);
+				color=0;
+			}
+			else if(sample[0]==1){//Green
+				LCD.drawString("   Strip: Green", 0, 7);
+				color=1;
+			}
+			colorMode.fetchSample(sample, 0);
+		}
+		Sound.beep();
+		pilot.travel(-distBackUp, false);
+		setDefaultSpeed();
         return color;
 	}
 	

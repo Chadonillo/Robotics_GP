@@ -14,7 +14,7 @@ import lejos.robotics.pathfinding.Path;
 
 public class AStar {
     private int hvCost = 10; // Horizontal - Vertical Cost
-    private int diagonalCost = 14;
+    private int diagonalCost = 10000;
     
     private Map map;
     private PriorityQueue<Node> openList;
