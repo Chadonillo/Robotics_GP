@@ -10,6 +10,7 @@ import java.util.Comparator;
 import lejos.robotics.navigation.Waypoint;
 import lejos.robotics.pathfinding.Path;
 
+//---------------------------------------------------------------------------------------------------
 /*The algorithm chosen for pathfinding is the A* search algorithm. A* returns a path of nodes that correspond to waypoints that 
 correspond to the physical course itself. This implementation models a grid (map) that does not use physical measurements
 yet still proportionally links to the physical course environment. 
@@ -23,35 +24,41 @@ navigator functionality (using LejOS inbuilts such as waypoints that relate to p
 algorithm to be used practically to traverse the course.
 
 Functionality:
-Blocked nodes - (Nodes can be dynamically blocked on the grid/map depending on what Wall-z knows)
+Blocked nodes - (Nodes can be dynamically blocked/made innaccessible on the grid/map depending on what Wall-z knows)
 Blocked nodes are employed to prevent the EV3 from entering/colliding with 'out of bounds areas' (such as the walls) and
 to prevent collision with objects. The robot should perform A* situationally and intelligently depending on information 
 it deduces/obtains while completing the task (such as its position from localising on the localization strip, its knowledge
 of variable obstacle locations from reading the colour strip or from being informed at the beginning of the task).
 */
+//---------------------------------------------------------------------------------------------------
+
 
 public class AStar {
-
+//---------------------------------------------------------------------------------------------------
 //hvCost is the horizontal or vertical cost of a generic diagonal movement from one node to another
     private int hvCost = 10; // Horizontal - Vertical Cost
 //diagonalCost is the diagonal cost of a generic diagonal movement from one node to another
-    private int diagonalCost = 14;
-	
-    	//Note that this need not correlate with actual physical measurements of distance and instead
-	//is simply the sides of a triangle (horizontal, vertical and diagonal) retrived using
-	//pythagoreas theorem. During testing, we altered these numbers artificially to encourage the
-	//robot to prefer either h/v or diagonal movements and noted its behaviour. Inaccuracies with
-	//turning and gyroscopic sensing surprisingly lead to some paths being performed with less or
-	//more error simply depending upon whether they involved more turning (note that a diagonal move
-	//usually requires Wall-Z to move 45 degrees whereas a horizontal often requires 90 degrees.
-	//
-	
-	
+    private int diagonalCost = 14;	
+//Note that this need not correlate with actual physical measurements of distance and instead
+//is simply the sides of a triangle (horizontal, vertical and diagonal) retrived using
+//pythagoreas theorem. During testing, we altered these numbers artificially to encourage the
+//robot to prefer either h/v or diagonal movements and noted its behaviour. Inaccuracies with
+//turning and gyroscopic sensing surprisingly lead to some paths being performed with less or
+//more error simply depending upon whether they involved more turning (note that a diagonal move
+//usually requires Wall-Z to move 45 degrees whereas a horizontal often requires 90 degrees.
+
+//Now we initialised an open list (priority Queue dst) and closed set as require by the A* algo.
+//A map using the map class inside the project is also initialised containing the default arena setup.
     private Map map;
     private PriorityQueue<Node> openList;
     private Set<Node> closedSet;
+//---------------------------------------------------------------------------------------------------
 	
-//AStar takes parameter of map when being constructed.
+/*AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
+and so when the robot needs to pathfind, it uses this map. The map changes intelligently depending on what Wall-Z can
+deduce from the environment allowing a multitude of potential routes depending on where Wall-Z is moving from, where
+he is moving to, and what he knows about the arena (e.g. obstacle locations from reading colour strips).
+*/
 
     public AStar(Map map) {
     	this.map = map;
@@ -67,11 +74,21 @@ public class AStar {
     public AStar(){
     	this(new Map());
     }
-    
+	
+	
+	
+	//METHODS
+  //---------------------------------------------------------------------------------------------------
+	
+	//The addBlock method blocks takes a Waypoint object as parameter and blocks this singular node from the map
+	//(using the addBlockedNode method from within this class).
+	//Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
     public void addBlock(Waypoint addWayPoint){
     	this.map.addBlockedNode(new Node((int)addWayPoint.getY(), (int)addWayPoint.getX()));
     }
     
+	//The same explanation applies as above except addBlock takes a Path object as parameter and
+	//for the nodes encoded within this path blocks them from the map.
     public void addBlock(Path path){
     	for(Waypoint point : path){
     		this.map.addBlockedNode(new Node((int)point.getY(), (int)point.getX()));
