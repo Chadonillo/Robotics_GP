@@ -50,6 +50,8 @@ public class AStar {
     private Map map;
     private PriorityQueue<Node> openList;
     private Set<Node> closedSet;
+	
+//AStar takes parameter of map when being constructed.
 
     public AStar(Map map) {
     	this.map = map;
