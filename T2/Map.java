@@ -1,9 +1,35 @@
 package T2;
-
+//Main contributors to concepts/code: James, Sean
+//Author of comments does not neccasarily imply the physical author of the code.
 import java.util.List;
+
+//@J This class encodes the map as a series of nodes to be used within the A* pathfinding class. 
+// In essence, the map is a grid derived from dimensions that correlate to the square arena given
+// in the task. The concept can be visualised by imagining a grid of nodes, with "blocks" - meaning blocked 
+// nodes, aka places where Wall-z is unable to go and are not included for pathfinding. 
+
+// The locations on the grid such as walls, objects and obstacles are blocked 
+// by adding the corresponding node to the blocks array (A* will then parse this blocked list
+// and set the boolean blocked status of the node to false. Blocked nodes signify places we do not want Wall-z to go or
+// collide with. Hence when we feed this map into the A* pathfinding class, a valid route is retrived 
+// in which Wall-Z behaves and traverses the arena as desired and required. 
+
+// Another feature of this class is that it permits a variety of routes to be dynamically generated
+// as required, E.g. once Wall-Z learns information about the arena, such as the
+// position of another obstacle after reading the colour in the box, this map is updated dynamically
+// by appending more blocks to blocked nodes list (i.e. essentially blocking the known obstacle). 
+
+// Also, once wall-z localises himself on the strip, he proceeds to move onto the nearest node on this
+// map/grid node network. His starting node is noted and used to calculate a route to the known goal
+// which is a specified and constant node on this map. Using various starting (Wall-Z current position)
+// and finishing points Wall-z is able calculate a path with A* and traverse/interact with the arena as
+// required using Brandon's navigation classes.
+ 
+
 
 public class Map {
 	private Node[][] mapArea;
+	//@J Define and initialise a list of blocks, e.g. nodes that are not considered in A* pathfinding routes.
 	private static int[][] blocks = new int[][]{{12, 6}, {12, 9}, {12, 11},
 												{11, 6}, {11, 9}, {11, 12},
 												{10, 5}, {10, 6}, {10, 9}, {10, 13},
@@ -23,7 +49,7 @@ public class Map {
 		setNodes();
 		setBlocks(blockedNodes);
 	}
-	
+	//@J specifies the map area (13 by 19 blocks).
 	public Map(){
 		this(13, 19, blocks);
 	}
@@ -35,7 +61,8 @@ public class Map {
             }
         }
     }
-
+        //@J the showMap method prints the map/routes to console visually. Very useful in error diagnostic and visualising
+	// the map scenario.
 	public void showMap(){
     	for (int i = mapArea.length-1; i >= 0 ; i--){
     		if(i/10 >= 1){System.out.print(i);}
@@ -77,14 +104,16 @@ public class Map {
 		return mapArea;
 	}
 	
+	//@J Block a specified node from the map by setting its blocked state to true. Removes nodes consideration by A*.
 	public void addBlockedNode(Node element){
 		this.mapArea[element.getRow()][element.getCol()].setBlock(true);
 	}
-	
+	//@J Add a specified node back to the map for consideration by A* by setting its blocked status state to false.
 	public void removeBlockedNode(Node element){
 		this.mapArea[element.getRow()][element.getCol()].setBlock(false);
 	}
 	
+	//@J Generate nodes for the map
 	private void setNodes() {
         for (int i = mapArea.length-1; i >= 0 ; i--) {
             for (int j = 0; j < mapArea[0].length; j++){
@@ -93,7 +122,7 @@ public class Map {
             }
         }
     }
-	
+	//@J Takes blocks from the initial array of specified blocks and sets the block status to True.
 	private void setBlocks(int[][] blocksArray) {
         for (int i = 0; i < blocksArray.length; i++) {
             int y = blocksArray[i][0];
