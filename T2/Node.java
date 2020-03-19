@@ -1,5 +1,5 @@
 package T2;
-
+//Main contributors: Sean and James
 public class Node {
 
     private int g;  // cost
