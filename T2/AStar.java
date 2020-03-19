@@ -103,16 +103,18 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
     		this.map.addBlockedNode(new Node((int)point.getY(), (int)point.getX()));
     	}
     }
-    
+    // Same explanation as above however this unblocks a given waypoint.
     public void removeBlock(Waypoint removeWayPoint){
     	this.map.removeBlockedNode(new Node((int)removeWayPoint.getY(), (int)removeWayPoint.getX()));
     }
-    
+    // Same explanation as above however this unblocks a given path.
     public void removeBlock(Path path){
     	for(Waypoint point : path){
     		this.map.removeBlockedNode(new Node((int)point.getY(), (int)point.getX()));
     	}
     }
+	
+	
 
     public Path findPath(Waypoint initialWaypoint, Waypoint finalWaypoint){
     	Node initialNode = new Node((int)initialWaypoint.getY(), (int)initialWaypoint.getX());
@@ -139,6 +141,9 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
 		return path;
     }
     
+    //@J (AM I RIGHT WITH THIS?) This method shorten the path (removes nodes), i.e. if an angle change has not occured
+    // from node A to B to C, node B is redundant and can be safely removed for use with the navigator (so the robot only
+    // stops when changing direction).
     private Path shortenPath(Path longPath){
 		if (longPath.isEmpty()){
 			return longPath;
