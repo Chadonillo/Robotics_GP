@@ -52,7 +52,7 @@ public class AStar {
 //diagonalCost is the diagonal cost of a generic diagonal movement from one node to another
     private int diagonalCost = 14;
     //@J Note that this need not correlate with actual physical measurements of distance and instead
-    //is simply the sides of a triangle (horizontal, vertical and diagonal) retrived using
+    //is simply the sides of a triangle (horizontal, vertical and diagonal) retrieved using
     //pythagoreas theorem. During testing, we altered these numbers artificially to encourage the
     //robot to prefer either h/v or diagonal movements and noted its behaviour. Inaccuracies with
     //turning and gyroscopic sensing surprisingly lead to some paths being performed with less or
@@ -68,7 +68,7 @@ public class AStar {
 	
 //---------------------------------------------------------------------------------------------------
 /*@J AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
-and so when the robot needs to pathfind, it uses this map. The map changes intelligently depending on what Wall-Z can
+and so when the robot needs to path find, it uses this map. The map changes intelligently depending on what Wall-Z can
 deduce from the environment allowing a multitude of potential routes depending on where Wall-Z is moving from, where
 he is moving to, and what he knows about the arena (e.g. obstacle locations from reading colour strips).
 */
@@ -90,7 +90,7 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
 	//METHODS
   //---------------------------------------------------------------------------------------------------
 //@J The addBlock method blocks takes a Waypoint object as parameter and blocks this singular node from the map
-    //(using the addBlockedNode method from within this class).
+    //(using the addBlockedNode method from within the map class).
     //Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
     public void addBlock(Waypoint addWayPoint){
     	this.map.addBlockedNode(new Node((int)addWayPoint.getY(), (int)addWayPoint.getX()));
@@ -141,7 +141,7 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
 		return path;
     }
     
-    //@J (AM I RIGHT WITH THIS?) This method shorten the path (removes nodes), i.e. if an angle change has not occured
+    //@J This method shorten the path (removes nodes), i.e. if an angle change has not occurred
     // from node A to B to C, node B is redundant and can be safely removed for use with the navigator (so the robot only
     // stops when changing direction).
     private Path shortenPath(Path longPath){
