@@ -13,7 +13,7 @@ import lejos.robotics.pathfinding.Path;
 
 /**
  * CustomNavigator is my version of the lejos Navigator Class.
- * The Navigator class had a lot of bugs and did not execute the
+ * The Lejos Navigator class had a lot of bugs and did not execute the
  * asked navigations as accurately was necessary for this task.
  * 
  * @author Brandon Cardillo
