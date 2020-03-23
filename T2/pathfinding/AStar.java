@@ -1,4 +1,4 @@
- package T2;
+ package pathfinding;
 
 //Main contributors: James and Brandon
 //@J The A* class was edited by Brandon to make it compatible with waypoints (functionality within LejOS and hence his navigator class).

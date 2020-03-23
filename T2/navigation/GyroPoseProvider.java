@@ -1,4 +1,4 @@
-package T2;
+package navigation;
 
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.robotics.SampleProvider;

@@ -1,4 +1,4 @@
-package T2;
+package navigation;
 
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
