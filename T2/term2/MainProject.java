@@ -7,7 +7,7 @@ public class MainProject{
 		Robot wallz = new Robot();
 		while(!Button.ESCAPE.isDown()){
 			String obstacle = wallz.setFirstObstacle();;
-			while(Button.ENTER.isUp()){;}
+			while(Button.ENTER.isUp()){;} 
 			wallz.reset();
 			wallz.centralizeOnStripBox();
 			int stripPos = wallz.localize();
@@ -18,8 +18,3 @@ public class MainProject{
 		}
 	}
 }
-// Things To Do
-// 1) PilotRotate Test to see if robot offset is okay
-// wallz.setDefaultSpeed();
-// wallz.testPilotRotation();
-// 3) test Navigator Squares
