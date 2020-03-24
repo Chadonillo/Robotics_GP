@@ -24,8 +24,9 @@ public class TheStrip {
         }
     }
     
-    public void setBayesianProbabilities(boolean movedFoward, boolean readBlue, double sensorProba, double moveProba) {
-        double normalization = 0.0;
+    public void updateProbablityMap(boolean movedFoward, boolean readBlue) {
+        double normalization = 0;
+        double sensorProba = 0.95;
         for(int i = 0; i < bayesianProbs.length; ++i) {
             if(squareIsBlue[i] == readBlue) {
                 bayesianProbs[i] *= sensorProba;
@@ -36,25 +37,22 @@ public class TheStrip {
             normalization += bayesianProbs[i];
         }
         normalize(normalization);
-
-        normalization = 0.0;
+        normalization = 0;
 
         if(movedFoward) {
 
             for (int i = bayesianProbs.length - 1; i > 8; --i) {
-                bayesianProbs[i] = bayesianProbs[i - 1] * moveProba + bayesianProbs[i] * (1 - moveProba);
+                bayesianProbs[i] = bayesianProbs[i - 1];
                 normalization += bayesianProbs[i];
             }
-
         } 
         else {
             for (int i = 9; i < bayesianProbs.length - 1; ++i) {
-                bayesianProbs[i] = bayesianProbs[i + 1] * moveProba + bayesianProbs[i] * (1 - moveProba);
+                bayesianProbs[i] = bayesianProbs[i + 1];
                 normalization += bayesianProbs[i];
             }
             bayesianProbs[bayesianProbs.length - 1]=0;
         }
-        
         normalize(normalization);
     }
 
