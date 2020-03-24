@@ -1,4 +1,4 @@
-package term2;
+package Term2;
 
 import lejos.hardware.Button;
 import lejos.hardware.lcd.LCD;
