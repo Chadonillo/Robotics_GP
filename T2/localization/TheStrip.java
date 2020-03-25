@@ -30,18 +30,18 @@ public class TheStrip {
 
         //@J In the bayesian probability array, we now set the probability the sensor is positioned within the first 8 blocks
         // as 0 (it is impossible for the light sensor to read these positions if the robot is placed on the strip facing forward)
-        // This makes sense, because the robot, being oriented forward is 8 blocks long itself, meaning the minimum
-        // position for the wall-z's sensor could be (when he is placed at random) is the 8th block.
+        // This makes sense, because the robot, being oriented forward is 9 blocks long itself, meaning the minimum
+        // position for the wall-z's sensor could be (when he is placed at random) is the 9th block.
         
         for(int i = 0; i < 9; ++i){
             proababilityHeIsAt[i] = 0;
         }
         
-        //@J Before the robot has even been positioned, we have eliminated 8 positions the robot's sensor could have read,
+        //@J Before the robot has even been positioned, we have eliminated 9 positions the robot's sensor could have read,
         // because the total probability that he is on the strip is known to be 100% (given we have placed him somewhere on the strip)
         // we now distribute this remaining probability of 1 between all the other positions on the strip that are left.
-        // Since the strip is composed of 37 boolean blocks, and we have removed 8 of them, we now distribute that 100% over
-        // the remaining 29 giving wall-z from the outset an approximate 3% chance of being on any individual of those 29 blocks.
+        // Since the strip is composed of 37 boolean blocks, and we have removed 9 of them, we now distribute that 100% over
+        // the remaining 28 giving wall-z from the outset an approximate 3% chance of being on any individual of those 28 blocks.
         
         for(int i = 9; i < proababilityHeIsAt.length; ++i){
             proababilityHeIsAt[i] = 1.0 / (squareIsBlue.length - 9);
