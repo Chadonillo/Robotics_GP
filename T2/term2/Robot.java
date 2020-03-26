@@ -297,31 +297,31 @@ public class Robot{
 	public void centralizeOnStripBox(){
 		pilot.setLinearSpeed(4);
 		double getToColorMin=minWhite;
-    	double getToColorMax=1.0;
-    	
-        float[] sample = new float[lightMode.sampleSize()];
-        lightMode.fetchSample(sample, 0);
-        double startColor = sample[0];
+		double getToColorMax=1.0;
+
+		float[] sample = new float[lightMode.sampleSize()];
+		lightMode.fetchSample(sample, 0);
+		double startColor = sample[0];	
         
-        if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
-        	pilot.travel(boxLenght/2, false);
-        	Delay.msDelay(500);
-        	lightMode.fetchSample(sample, 0);
-        	startColor = sample[0];	
-        }
-        if(startColor>minWhite){ //if we are on white. go to blue
-        	getToColorMin = 0.0;
-        	getToColorMax = maxBlue;
-        }
-        pilot.stop();
-        pilot.travel(10,true);
-        while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
-        	lightMode.fetchSample(sample, 0);
-        }
-        float dist = pilot.getMovement().getDistanceTraveled();
-        pilot.stop();
-        int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
-        pilot.travel(-boxLenght*moveBackSteps, false);
+		if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
+			pilot.travel(boxLenght/2, false);
+			Delay.msDelay(500);
+			lightMode.fetchSample(sample, 0);
+			startColor = sample[0];	
+		}
+		if(startColor>minWhite){ //if we are on white. go to blue
+			getToColorMin = 0.0;
+			getToColorMax = maxBlue;
+		}
+		pilot.stop();
+		pilot.travel(10,true);
+		while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
+			lightMode.fetchSample(sample, 0);
+		}
+		float dist = pilot.getMovement().getDistanceTraveled();
+		pilot.stop();
+		int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
+		pilot.travel(-boxLenght*moveBackSteps, false);
 	}
 	
 	/**
@@ -340,22 +340,22 @@ public class Robot{
 		pilot.setLinearSpeed(4);
 		theMainStrip.resetProbs();
         
-        float[] sample = new float[lightMode.sampleSize()];
-        boolean movingForward = true;
-        while(theMainStrip.getProbabilityOfLikelyPosition() < 0.85 && !Button.ESCAPE.isDown()) {
-        	lightMode.fetchSample(sample, 0);
-            boolean isBlue = false;
-            if (sample[0] < maxBlue){isBlue = true;}
-            if(theMainStrip.getLikelyPosition()+1==37 && theMainStrip.getProbabilityOfLikelyPosition()>= 0.4){movingForward=false;}
-            if(theMainStrip.getLikelyPosition()+1==10 && theMainStrip.getProbabilityOfLikelyPosition()>= 0.4){movingForward=true;}
-            if(movingForward){pilot.travel(boxLenght, false);}
-            else{pilot.travel(-boxLenght, false);}
-            theMainStrip.updateProbablityMap(movingForward, isBlue);
-        }
-        LCD.drawString("  Location: " +(theMainStrip.getLikelyPosition()+1)+"          ", 0, 4);
-        Sound.beep();
-        return (theMainStrip.getLikelyPosition()+1-2);
-    }
+		float[] sample = new float[lightMode.sampleSize()];
+		boolean movingForward = true;
+		while(theMainStrip.getProbabilityOfLikelyPosition() < 0.85 && !Button.ESCAPE.isDown()) {
+			lightMode.fetchSample(sample, 0);
+		    	boolean isBlue = false;
+		  	if (sample[0] < maxBlue){isBlue = true;}
+		        if(theMainStrip.getLikelyPosition()+1==37 && theMainStrip.getProbabilityOfLikelyPosition()>= 0.4){movingForward=false;}
+		        if(theMainStrip.getLikelyPosition()+1==10 && theMainStrip.getProbabilityOfLikelyPosition()>= 0.4){movingForward=true;}
+		        if(movingForward){pilot.travel(boxLenght, false);}
+		        else{pilot.travel(-boxLenght, false);}
+		        theMainStrip.updateProbablityMap(movingForward, isBlue);
+        	}
+		LCD.drawString("  Location: " +(theMainStrip.getLikelyPosition()+1)+"          ", 0, 4);
+		Sound.beep();
+		return (theMainStrip.getLikelyPosition()+1-2);
+   	 }
 	
 	/**
 	 * This method puts the robot onto the closest location on the map's grid.
