@@ -1,6 +1,5 @@
 package pathfinding;
 // Main authors to code/concepts: James and Sean
-public class Node{
 	/** 
 	* J: The node class is a custom data-structure implemented to supplement the Map and AStar.
 	* The Map is formed by a network of nodes, which is operated on by AStar to generate a path. 
@@ -8,6 +7,8 @@ public class Node{
 	* i.e. the property of being online or offline
 	* @author James Burroughs, Seokhwan Jung
 	*/
+public class Node{
+
 
 	int x;
     int y;
