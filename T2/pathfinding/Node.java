@@ -43,6 +43,7 @@ public class Node{
     
        /** 
 	* J: This method returns the Offline status of the node (will return TRUE if the node is OFFLINE)
+	* @return true if the node is offline, false if it is online
 	*/
     public boolean isNodeOffline(){
         return isOffline;
@@ -84,6 +85,7 @@ public class Node{
 	* (as heuristic node is constant for individual nodes)for THIS node's current state
 	* @param currentState
 	* @param cost
+	* @return true if there is a shorter route
 	*/
     public boolean isThereAShorterRoute(Node currentState,int cost){
         int gCost = currentState.getGCost() +cost;
@@ -107,6 +109,7 @@ public class Node{
     
 	/** 
 	* J: This method returns the G-Cost of THIS node
+	* @return  integer value of G cost
 	*/ 
     public int getGCost(){
         return gCostOfNode;
@@ -122,6 +125,7 @@ public class Node{
 	
 	/** 
 	* J: This method gets the F-Cost of THIS node
+	* @return integer value of F cost
 	*/
     public int getFCost(){
         return fCombinedCostOfNode;
@@ -162,7 +166,8 @@ public class Node{
    
 	
     /** 
-     * J: This method returns the heuristic (H-Cost) of THIS node	
+     * J: This method returns the heuristic (H-Cost) of THIS node
+     * @return heuristic aka H cost of node
      */ 
     public int getHeuristic(){
         return hCostOfNode;
@@ -178,6 +183,7 @@ public class Node{
 	
         /** 
 	* J: This method returns the parent node of THIS node
+	* @return this node's parent
 	*/
     public Node getParentNode(){
         return nodesParent;
@@ -194,6 +200,7 @@ public class Node{
        /** 
 	* J: This method compares takes a node param and returns TRUE if it is has same coordinates as THIS node.
 	* @param toCompare
+	* @return true if the node toCompare is equal to THIS node
 	*/
     public boolean equals(Node toCompare){
         Node anotherNode = toCompare;
@@ -202,6 +209,7 @@ public class Node{
 	
 	/** 
 	* J: This method returns the X coordinate value of the node (its value on the X axis)
+	* @return integer value of X coordinate
 	*/
     public int getX(){
         return x;
@@ -216,6 +224,7 @@ public class Node{
 	
 	/** 
 	*  J: This method returns the Y coordinate value of the node
+	* @return integer value of Y coordinate
 	*/
     public int getY(){
         return y;
