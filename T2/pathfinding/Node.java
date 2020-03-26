@@ -1,132 +1,241 @@
 package pathfinding;
+// Main authors to code/concepts: James and Sean
+public class Node{
+	/** 
+	* J: The node class is a custom data-structure implemented to supplement the Map and AStar.
+	* The Map is formed by a network of nodes, which is operated on by AStar to generate a path. 
+	* Nodes have properties useful to the implementation of Map and AStar,
+	* i.e. the property of being online or offline
+	* @author James Burroughs, Seokhwan Jung
+	*/
 
-public class Node {
-
-    private int g;  // cost
-    private int f;  //final Cost
-    private int h;  // heuristic cost
-    int row;
-    private int col;
-    private boolean isBlock;
-    private Node parent;
-
-    public Node(int row, int col) {
+	int x;
+    int y;
+    private boolean isOffline;
+    private Node nodesParent;
+	
+	/** 
+	*  J: heuristic cost (represents estimated cost from node n to goal node)
+	*/
+    private int hCostOfNode;
+	
+	/** 
+	* Exact cost of path from the start node to node n
+	*/
+    private int gCostOfNode; 
+	
+	/** 
+	* final cost, F, equal to h cost plus G cost of node and g cost of node
+	*/
+    private int fCombinedCostOfNode;  //final cost, F, equal to h cost plus G cost of node and g cost of node
+       
+	/** 
+	*  J: The class is constructed by taking a coordinate (row and column value). 
+	*  Super() for parent node functionality
+	*  @param row
+	*  @param column
+	*/
+    public Node(int row, int column){
         super();
-        this.row = row;
-        this.col = col;
-    }
-
-    public void calculateHeuristic(Node finalNode) {
-        this.h = Math.abs(finalNode.getRow() - getRow()) + Math.abs(finalNode.getCol() - getCol());
-    }
-
-    public void setNodeData(Node currentNode, int cost) {
-        int gCost = currentNode.getG() + cost;
-        setParent(currentNode);
-        setG(gCost);
-        calculateFinalCost();
-    }
-
-    public boolean checkBetterPath(Node currentNode, int cost) {
-        int gCost = currentNode.getG() + cost;
-        if (gCost < getG()) {
-            setNodeData(currentNode, cost);
-            return true;
-        }
-        return false;
-    }
-
-    private void calculateFinalCost() {
-        int finalCost = getG() + getH();
-        setF(finalCost);
-    }
-
-    @Override
-    public boolean equals(Object arg0) {
-        Node other = (Node) arg0;
-        return this.getRow() == other.getRow() && this.getCol() == other.getCol();
-    }
-
-    @Override
-    public String toString() {
-        return "Node [row=" + row + ", col=" + col + ", blocked= " + isBlock + "]";
-    }
-
-    public int getH() {
-        return h;
-    }
-
-    public void setH(int h) {
-        this.h = h;
-    }
-
-    public int getG() {
-        return g;
-    }
-
-    public void setG(int g) {
-        this.g = g;
-    }
-
-    public int getF() {
-        return f;
-    }
-
-    public void setF(int f) {
-        this.f = f;
-    }
-
-    public Node getParent() {
-        return parent;
-    }
-
-    public void setParent(Node parent) {
-        this.parent = parent;
-    }
-
-    public boolean isBlock() {
-        return isBlock;
-    }
-
-    public void setBlock(boolean isBlock) {
-        this.isBlock = isBlock;
-    }
-
-    public int getRow() {
-        return row;
-    }
-
-    public void setRow(int row) {
-        this.row = row;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public void setCol(int col) {
-        this.col = col;
+        this.x = row;
+        this.y = column;
     }
     
-    public void nodeConverter() {
-    	if (row == 5) {
-    		this.row = 0;	
+       /** 
+	* J: This method returns the Offline status of the node (will return TRUE if the node is OFFLINE)
+	* @return true if the node is offline, false if it is online
+	*/
+    public boolean isNodeOffline(){
+        return isOffline;
+    }
+	
+	/** 
+	* J: This method sets the nodes Offline status (if TRUE is passed as a parameter then the node is
+	* OFFLINE and not to be considered during pathfinding with AStar
+	*/
+    public void setOffline(boolean z){
+        this.isOffline = z;
+    }
+	
+       /** 
+	*  J: Takes the current state of the (LIVE NODE)
+	* and is used to update the state of the node as AStar progresses
+	* i.e. for when a better G-Cost is discovered.
+	* @param currentState
+	* @param cost
+	*/
+    public void setState(Node currentState, int cost){
+        int costToG = currentState.getGCost() + cost;
+        setParental(currentState);
+        setGCost(costToG);
+        findFinalCost();
+    }
+	
+        /** 
+	* J: This method calculates the chosen heuristic: the Manhattan Heuristic. I.e. the deltas on x and y between a node in question
+	* and the destination are calculated
+	* @param destination
+	*/
+    public void generateManhattanHeuristic(Node destination){
+        this.hCostOfNode = Math.abs(destination.getY()-getY()) + Math.abs(destination.getX()-getX()) ;
+    }
+    
+	/** 
+	* J: Method returns true and updates the state if a shorter route with respect to gCost exists
+	* (as heuristic node is constant for individual nodes)for THIS node's current state
+	* @param currentState
+	* @param cost
+	* @return true if there is a shorter route
+	*/
+    public boolean isThereAShorterRoute(Node currentState,int cost){
+        int gCost = currentState.getGCost() +cost;
+        if (gCost<getGCost()){ setState(currentState, cost);
+            return true;}
+        return false;
+    }
+    
+	/** 
+	* J: Method calculates fCost (finalCost) for THIS node
+	*/
+    private void findFinalCost(){
+        int finalCost= getHeuristic() + getGCost();
+        setFCost(finalCost);}
+        
+	/** 
+	* J: This method prints useful information for THIS node
+	*/
+    public void printNodeProperties(){
+        System.out.println("This node's coordinates are: " + "(" + x + "," + y + ")" + " ... " + "Is this node offline (true or false)? " + isOffline);}
+    
+	/** 
+	* J: This method returns the G-Cost of THIS node
+	* @return  integer value of G cost
+	*/ 
+    public int getGCost(){
+        return gCostOfNode;
+    }
+	
+	/** 
+	*  J: This method sets the G-Cost of THIS node
+	* @param g
+	*/
+    public void setGCost(int g){
+        this.gCostOfNode = g;
+    }
+	
+	/** 
+	* J: This method gets the F-Cost of THIS node
+	* @return integer value of F cost
+	*/
+    public int getFCost(){
+        return fCombinedCostOfNode;
+    }
+	
+	
+	/** 
+	* J: This method sets the F-Cost of THIS node
+	* @param f
+	*/
+    public void setFCost(int f){
+        this.fCombinedCostOfNode = f;
+    }
+	
+       /** 
+	* J: This is a redundant method used to convert between simple coordinate systems during prior testing
+	*/
+    public void nodeConverter(){
+    	if (x  == 5) {
+    		this.x = 0;	
     	}
-    	else if (row == 4) {
-    		this.row = 1;
+    	else if (x == 4) {
+    		this.x = 1;
     	}
-    	else if (row == 3) {
-    		this.row = 2;
+    	else if (x == 3) {
+    		this.x = 2;
     	}
-    	else if (row == 2) {
-    		this.row = 3;
+    	else if (x == 2) {
+    		this.x = 3;
     	}
-    	else if (row == 1) {
-    		this.row = 4;
+    	else if (x == 1) {
+    		this.x = 4;
     	}
-    	else if (row == 0) {
-    		this.row = 5;
+    	else if (x == 0) {
+    		this.x = 5;
     	}
     	}
    
+	
+    /** 
+     * J: This method returns the heuristic (H-Cost) of THIS node
+     * @return heuristic aka H cost of node
+     */ 
+    public int getHeuristic(){
+        return hCostOfNode;
+    }
+	
+    /** 
+     * J: This method is used to set a Heuristic value for THIS node (h passed as a parameter)
+     * @param h
+     */
+    public void setHeuristic(int h){
+        this.hCostOfNode = h;
+    }
+	
+        /** 
+	* J: This method returns the parent node of THIS node
+	* @return this node's parent
+	*/
+    public Node getParentNode(){
+        return nodesParent;
+    }
+	
+       /** 
+	* J: This method sets the parent node of THIS node to the parent passed as a parameter
+	* @param parent
+	*/
+    public void setParental(Node parent){
+        this.nodesParent = parent;
+    }
+	
+       /** 
+	* J: This method compares takes a node param and returns TRUE if it is has same coordinates as THIS node.
+	* @param toCompare
+	* @return true if the node toCompare is equal to THIS node
+	*/
+    public boolean equals(Node toCompare){
+        Node anotherNode = toCompare;
+        return this.getX()==anotherNode.getX() && this.getY()==anotherNode.getY();
+    }
+	
+	/** 
+	* J: This method returns the X coordinate value of the node (its value on the X axis)
+	* @return integer value of X coordinate
+	*/
+    public int getX(){
+        return x;
+    }
+	/** 
+	* J: This method sets the X coordinate value of the node to the param value
+	* @param row
+	*/
+    public void setX(int row){
+        this.x = row;
+    }
+	
+	/** 
+	*  J: This method returns the Y coordinate value of the node
+	* @return integer value of Y coordinate
+	*/
+    public int getY(){
+        return y;
+    }
+	/** 
+	* J: This method sets the Y coordinate value of the node to the param value
+	* @param column
+	*/
+    public void setY(int column) {
+        this.y = column;
+    }
+    
+
 }

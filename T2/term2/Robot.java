@@ -297,37 +297,37 @@ public class Robot{
 	public void centralizeOnStripBox(){
 		pilot.setLinearSpeed(4);
 		double getToColorMin=minWhite;
-    	double getToColorMax=1.0;
-    	
-        float[] sample = new float[lightMode.sampleSize()];
-        lightMode.fetchSample(sample, 0);
-        double startColor = sample[0];
+		double getToColorMax=1.0;
+
+		float[] sample = new float[lightMode.sampleSize()];
+		lightMode.fetchSample(sample, 0);
+		double startColor = sample[0];	
         
-        if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
-        	pilot.travel(boxLenght/2, false);
-        	Delay.msDelay(500);
-        	lightMode.fetchSample(sample, 0);
-        	startColor = sample[0];	
-        }
-        if(startColor>minWhite){ //if we are on white. go to blue
-        	getToColorMin = 0.0;
-        	getToColorMax = maxBlue;
-        }
-        pilot.stop();
-        pilot.travel(10,true);
-        while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
-        	lightMode.fetchSample(sample, 0);
-        }
-        float dist = pilot.getMovement().getDistanceTraveled();
-        pilot.stop();
-        int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
-        pilot.travel(-boxLenght*moveBackSteps, false);
+		if(startColor<minWhite && startColor>maxBlue){//if we are in between colours move forward.
+			pilot.travel(boxLenght/2, false);
+			Delay.msDelay(500);
+			lightMode.fetchSample(sample, 0);
+			startColor = sample[0];	
+		}
+		if(startColor>minWhite){ //if we are on white. go to blue
+			getToColorMin = 0.0;
+			getToColorMax = maxBlue;
+		}
+		pilot.stop();
+		pilot.travel(10,true);
+		while((sample[0]<getToColorMin || sample[0]>getToColorMax) && !Button.ESCAPE.isDown()){
+			lightMode.fetchSample(sample, 0);
+		}
+		float dist = pilot.getMovement().getDistanceTraveled();
+		pilot.stop();
+		int moveBackSteps = (int) Math.round((double)dist/(double)boxLenght);
+		pilot.travel(-boxLenght*moveBackSteps, false);
 	}
 	
 	/**
 	 * This method localises the robot on the line (the strip). 
 	 * First we sample the reading of the colour sensor to see if the colour being 
-	 * read is blue or white. Then we have to check with {@link localization.TheStrip#getLocation()}
+	 * read is blue or white. Then we have to check with {@link localization.TheStrip#getLikelyPosition()}
 	 * to see if the most likely position of the robot is the end of the strip. If it is then
 	 * we have to set the robot to move backwards on the strip.
 	 * It uses {@link localization.TheStrip#updateProbablityMap}
@@ -340,22 +340,22 @@ public class Robot{
 		pilot.setLinearSpeed(4);
 		theMainStrip.resetProbs();
         
-        float[] sample = new float[lightMode.sampleSize()];
-        boolean movingForward = true;
-        while(theMainStrip.getHighestProbability() < 0.85 && !Button.ESCAPE.isDown()) {
-        	lightMode.fetchSample(sample, 0);
-            boolean isBlue = false;
-            if (sample[0] < maxBlue){isBlue = true;}
-            if(theMainStrip.getLocation()+1==37 && theMainStrip.getHighestProbability()>= 0.4){movingForward=false;}
-            if(theMainStrip.getLocation()+1==10 && theMainStrip.getHighestProbability()>= 0.4){movingForward=true;}
-            if(movingForward){pilot.travel(boxLenght, false);}
-            else{pilot.travel(-boxLenght, false);}
-            theMainStrip.updateProbablityMap(movingForward, isBlue);
-        }
-        LCD.drawString("  Location: " +(theMainStrip.getLocation()+1)+"          ", 0, 4);
-        Sound.beep();
-        return (theMainStrip.getLocation()+1-2);
-    }
+		float[] sample = new float[lightMode.sampleSize()];
+		boolean movingForward = true;
+		while(theMainStrip.getProbabilityOfLikelyPosition() < 0.85 && !Button.ESCAPE.isDown()) {
+			lightMode.fetchSample(sample, 0);
+		    	boolean isBlue = false;
+		  	if (sample[0] < maxBlue){isBlue = true;}
+		        if(theMainStrip.getLikelyPosition()+1==37 && theMainStrip.getProbabilityOfLikelyPosition()>= 0.4){movingForward=false;}
+		        if(theMainStrip.getLikelyPosition()+1==10 && theMainStrip.getProbabilityOfLikelyPosition()>= 0.4){movingForward=true;}
+		        if(movingForward){pilot.travel(boxLenght, false);}
+		        else{pilot.travel(-boxLenght, false);}
+		        theMainStrip.updateProbablityMap(movingForward, isBlue);
+        	}
+		LCD.drawString("  Location: " +(theMainStrip.getLikelyPosition()+1)+"          ", 0, 4);
+		Sound.beep();
+		return (theMainStrip.getLikelyPosition()+1-2);
+   	 }
 	
 	/**
 	 * This method puts the robot onto the closest location on the map's grid.
@@ -387,13 +387,13 @@ public class Robot{
 	 */
 	public int navigateToBox(String obstaclePos){
 		Waypoint goal = new Waypoint(7,8);
-		if(obstaclePos.equals("left")){aStar.addBlock(obstacle_left);}
-		else if(obstaclePos.equals("right")){aStar.addBlock(obstacle_right);}
+		if(obstaclePos.equals("left")){aStar.bringPathOffline(obstacle_left);}
+		else if(obstaclePos.equals("right")){aStar.bringPathOffline(obstacle_right);}
 		
-		aStar.addBlock(startWall);
+		aStar.bringPathOffline(startWall);
 		
-		Path path = aStar.findPath(currentPos, goal);
-		aStar.removeBlock(startWall);
+		Path path = aStar.getPath(currentPos, goal);
+		aStar.bringPathOnline(startWall);
 		navigator.followPath(gridToReal(path));
 		navigator.waitForStop();
 		currentPos = goal;
@@ -415,10 +415,10 @@ public class Robot{
 	 */
 	public void navigateToBase(int color){
 		Waypoint goal = new Waypoint(10,1);
-		if(color==0){aStar.addBlock(obstacle_red);}
-		else if(color==1){aStar.addBlock(obstacle_green);}
+		if(color==0){aStar.bringPathOffline(obstacle_red);}
+		else if(color==1){aStar.bringPathOffline(obstacle_green);}
 		
-		Path path = aStar.findPath(currentPos, goal);
+		Path path = aStar.getPath(currentPos, goal);
 		navigator.setPath(gridToReal(path));
 		navigator.followPath();
 		navigator.waitForStop();

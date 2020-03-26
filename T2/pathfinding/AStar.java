@@ -1,20 +1,21 @@
  package pathfinding;
 
-//Main contributors: James and Brandon
-//@J The A* class was edited by Brandon to make it compatible with waypoints (functionality within LejOS and hence his navigator class).
-// Before this, it was an independent implementation of the A* algorithm functional acting with the node class. More into these
-// edits will be given in the descriptions below.
-// An overview is here:
-// The LejOS waypoint implementation simply involves objects of type waypoint with some useful methods associated. When building
-// we decided to utilise these waypoints within the navigator class. The waypoint and nodes correspond exactly to each other, 
-// we simply convert regularly perform simple conversions between them to save time. For example, a node on the grid at position
-// (3, 9) corresponds to a waypoint at position (3, 9). To convert waypoint to node, we call the method on the waypoint that 
-// returns the integer value of its x and y coordinates respectively and construct a corresponding node.
-// The methods in this class generally take waypoints from Brandon's classes as parameters, rapidly initialise the relevant nodes
-// using the node class, and then perform the A* pathfinding.
-// Potentially, with more time, we could have rewrote this for cleaner code however the task was deemed to be a non priority given
-// the efficiency of conversion and the suggestion from experimental trials that this was a non-issue.
-
+/**
+* J: The A* class was edited by Brandon to make it compatible with waypoints (functionality within LejOS and hence his navigator class).
+* Before this, it was an independent implementation of the A* algorithm functional acting with the node class. More into these
+* edits will be given in the descriptions below.
+* An overview is here:
+* The LejOS waypoint implementation simply involves objects of type waypoint with some useful methods associated. When building
+* we decided to utilise these waypoints within the navigator class. The waypoint and nodes correspond exactly to each other, 
+* we simply convert regularly perform simple conversions between them to save time. For example, a node on the grid at position
+* (3, 9) corresponds to a waypoint at position (3, 9). To convert waypoint to node, we call the method on the waypoint that 
+* returns the integer value of its x and y coordinates respectively and construct a corresponding node.
+* The methods in this class generally take waypoints from Brandon's classes as parameters, rapidly initialise the relevant nodes
+* using the node class, and then perform the A* pathfinding.
+* Potentially, with more time, we could have rewrote this for cleaner code however the task was deemed to be a non priority given
+* the efficiency of conversion and the suggestion from experimental trials that this was a non-issue.
+* @author James Burroughs, Brandon Cardillo
+*/
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -25,7 +26,6 @@ import java.util.Comparator;
 import lejos.robotics.navigation.Waypoint;
 import lejos.robotics.pathfinding.Path;
 
-//---------------------------------------------------------------------------------------------------
 /*@J The algorithm chosen for pathfinding is the A* search algorithm. A* returns a path of nodes that correspond to waypoints that 
 correspond to the physical course itself. This implementation models a grid (map) that does not use physical measurements
 yet still proportionally links to the physical course environment. 
@@ -37,115 +37,155 @@ navigator functionality (using LejOS inbuilts such as waypoints that relate to p
 algorithm to be used practically to traverse the course.
 
 Functionality:
-Blocked nodes specified within the map class - (Nodes can be dynamically blocked/made innaccessible on the grid/map depending on what Wall-z knows)
-Blocked nodes are employed to prevent the EV3 from entering/colliding with 'out of bounds areas' (such as the walls) and
+Offline nodes specified within the map class - (Nodes can be dynamically set offline/made innaccessible on the grid/map depending on what Wall-z knows)
+Offline nodes are employed to prevent the EV3 from entering/colliding with 'out of bounds areas' (such as the walls) and
 to prevent collision with objects. The robot should perform A* situationally and intelligently depending on information 
 it deduces/obtains while completing the task (such as its position from localising on the localization strip, its knowledge
 of variable obstacle locations from reading the colour strip or from being informed at the beginning of the task).
 */
-//---------------------------------------------------------------------------------------------------
 
 public class AStar {
-//---------------------------------------------------------------------------------------------------
-//hvCost is the horizontal or vertical cost of a generic diagonal movement from one node to another
-    private int hvCost = 10; 
-//diagonalCost is the diagonal cost of a generic diagonal movement from one node to another
-    private int diagonalCost = 14;
-    //@J Note that this need not correlate with actual physical measurements of distance and instead
+
+     /**
+     * J: This integer is the horizontal or vertical cost of a generic diagonal movement from one node to another
+     */
+    private int xyMoveCost = 10; 
+     /**
+     * J:This integer is the diagonal cost of a generic diagonal movement from one node to another
+     */
+    private int diagonalMoveCost = 14;
+    // J: Note that this need not correlate with actual physical measurements of distance and instead
     //is simply the sides of a triangle (horizontal, vertical and diagonal) retrieved using
     //pythagoreas theorem. During testing, we altered these numbers artificially to encourage the
-    //robot to prefer either h/v or diagonal movements and noted its behaviour. Inaccuracies with
+    //robot to prefer either xy or diagonal movements and noted its behaviour. Inaccuracies with
     //turning and gyroscopic sensing surprisingly lead to some paths being performed with less or
     //more error simply depending upon whether they involved more turning (note that a diagonal move
     //usually requires Wall-Z to move 45 degrees whereas a horizontal often requires 90 degrees.
 
-   //Now we initialise an open list (priority Queue dst) and closed set as require by the A* algo.
-   //A map using the map class inside the project is also initialised containing the default arena setup.
+     /**
+     * J: A map using the map class inside the project is also initialised containing the default arena setup.
+     * Now we initialise an open list (priority Queue dst) and closed set as require by the A* algo.
+     */
     private Map map;
-    private PriorityQueue<Node> openList;
-    private Set<Node> closedSet;
+     /**
+     * J: Open list stores all possibilities for nodes where F cost has been calculated, 
+     */
+    private PriorityQueue<Node> listOpen;
+     /**
+     * J: Closed list stores all expanded nodes.
+     */
+    private Set<Node> listClosed;
 
-	
-//---------------------------------------------------------------------------------------------------
-/*@J AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
-and so when the robot needs to path find, it uses this map. The map changes intelligently depending on what Wall-Z can
-deduce from the environment allowing a multitude of potential routes depending on where Wall-Z is moving from, where
-he is moving to, and what he knows about the arena (e.g. obstacle locations from reading colour strips).
-*/
+
+     /**
+     * J: AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
+     *and so when the robot needs to path find, it uses this map. The map changes intelligently depending on what Wall-Z can
+     *deduce from the environment allowing a multitude of potential routes depending on where Wall-Z is moving from, where
+     * he is moving to, and what he knows about the arena (e.g. obstacle locations from reading colour strips).
+     * @param map AStar takes a map instance which encodes the arena
+     */
     public AStar(Map map) {
     	this.map = map;
-        this.openList = new PriorityQueue<Node>(200, new Comparator<Node>(){
-            @Override
-            public int compare(Node node0, Node node1) {
-                return Integer.compare(node0.getF(), node1.getF());
-            }
-        });
-        this.closedSet = new HashSet<>();
+    	//PriorityQueue with initial capacity 300 that orders the nodes by comparing their FCost
+        this.listOpen = new PriorityQueue<Node>(300, new Comparator<Node>(){
+            public int compare(Node a, Node b) { return Integer.compare(a.getFCost(), b.getFCost());}});
+        this.listClosed = new HashSet<>();
     }
     
     public AStar(){
     	this(new Map());
     }
     	
-	//METHODS
-  //---------------------------------------------------------------------------------------------------
-//@J The addBlock method blocks takes a Waypoint object as parameter and blocks this singular node from the map
-    //(using the addBlockedNode method from within the map class).
-    //Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
-    public void addBlock(Waypoint addWayPoint){
-    	this.map.addBlockedNode(new Node((int)addWayPoint.getY(), (int)addWayPoint.getX()));
+     /**
+     * J: The bringWaypointOffline method takes a Waypoint object as parameter and takes this singular node from the map offline
+     * Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
+     * @param addWayPoint
+     */ 
+    public void bringWaypointOffline(Waypoint addWayPoint){
+    	this.map.setNodeOffline(new Node((int)addWayPoint.getY(), (int)addWayPoint.getX()));
     }
-    
-//@J The same explanation applies as above except addBlock takes a Path object as parameter and
-//for the nodes encoded within this path blocks them from the map.
-    public void addBlock(Path path){
+	
+    /**
+     * The same explanation applies as above except bringPathOffline takes a Path object as parameter and
+     * for the nodes encoded within this path puts them offline on the map node network.
+     * @param path
+     */ 
+    public void bringPathOffline(Path path){
     	for(Waypoint point : path){
-    		this.map.addBlockedNode(new Node((int)point.getY(), (int)point.getX()));
-    	}
-    }
-    // Same explanation as above however this unblocks a given waypoint.
-    public void removeBlock(Waypoint removeWayPoint){
-    	this.map.removeBlockedNode(new Node((int)removeWayPoint.getY(), (int)removeWayPoint.getX()));
-    }
-    // Same explanation as above however this unblocks a given path.
-    public void removeBlock(Path path){
-    	for(Waypoint point : path){
-    		this.map.removeBlockedNode(new Node((int)point.getY(), (int)point.getX()));
+    		this.map.setNodeOffline(new Node((int)point.getY(), (int)point.getX()));
     	}
     }
 	
+     /**
+     * Same explanation as bringWaypointOffline however this puts a given waypoint back online.
+     * @param removeWayPoint
+     */ 
+    public void bringWaypointOnline(Waypoint removeWayPoint){
+    	this.map.bringNodeOnline(new Node((int)removeWayPoint.getY(), (int)removeWayPoint.getX()));
+    }
 	
-
-    public Path findPath(Waypoint initialWaypoint, Waypoint finalWaypoint){
-    	Node initialNode = new Node((int)initialWaypoint.getY(), (int)initialWaypoint.getX());
-    	Node finalNode = new Node((int)finalWaypoint.getY(), (int)finalWaypoint.getX());
-    	this.map.setHeuristic(finalNode);
-        openList.add(initialNode);
-        while (openList.size() != 0) {
-            Node currentNode = openList.poll();
-            closedSet.add(currentNode);
-            if (currentNode.equals(finalNode)) {
-                return shortenPath(listToPath(getPath(currentNode)));
-            } else {
-                addAdjacentNodes(currentNode);
-            }
+    /**
+     * Same explanation as above however this brings a given path online
+     * @param path
+     */ 
+    public void bringPathOnline(Path path){
+    	for(Waypoint point : path){
+    		this.map.bringNodeOnline(new Node((int)point.getY(), (int)point.getX()));
+    	}
+    }
+	
+     /**
+     * J: Returns the path generated by A*. Start and destination nodes are specified from waypoints.
+     * @param startWaypoint
+     * @param destinationWaypoint
+     * @return the path
+     */ 
+    public Path getPath(Waypoint startWaypoint, Waypoint destinationWaypoint){
+    	Node start = new Node((int)startWaypoint.getY(), (int)startWaypoint.getX());
+    	Node destination = new Node((int)destinationWaypoint.getY(), (int)destinationWaypoint.getX());
+    	//set heuristic to destination and add start point
+    	this.map.setHeuristic(destination);
+        listOpen.add(start); // add start to open list
+        
+        while (listOpen.size() != 0){
+            Node liveNode = listOpen.poll(); //poll returns and removes the element at the front of the open list
+            listClosed.add(liveNode);
+            //if the destination is reached shorten the path and then return it
+            if(liveNode.equals(destination)){
+                return shortenPath(listToPath(getPath(liveNode)));
+            } else{
+		    //update and audit all neighbouring nodes (three above, two either side and three below)
+                updateTop(liveNode);
+                updateMid(liveNode);
+                updateBelow(liveNode);}
         }
+	    //return the path
         return new Path();
     }
     
+     /**
+     * 
+     * J: Converts a list of nodes to a path of Waypoints.
+     * @param list
+     * @return the path
+     */ 
     private Path listToPath(List<Node> list){
     	Path path = new Path();
-    	for (Node node : list) {
-    		path.add(new Waypoint(node.getCol(), node.getRow()));
+    	for(Node node : list) {
+    		path.add(new Waypoint(node.getY(), node.getX()));
     	}
 		return path;
     }
-    
-    //@J This method shorten the path (removes nodes), i.e. if an angle change has not occurred
-    // from node A to B to C, node B is redundant and can be safely removed for use with the navigator (so the robot only
-    // stops when changing direction).
+	
+     /**
+     * J: This method shorten the path (removes nodes), i.e. if an angle change has not occurred
+     * from node A to B to C, node B is redundant and can be safely removed for use with the navigator (so the robot only
+     * stops when changing direction).
+     * @param longPath
+     * @return the path
+     */
     private Path shortenPath(Path longPath){
-		if (longPath.isEmpty()){
+		if(longPath.isEmpty()){
 			return longPath;
 		}
 		
@@ -156,87 +196,96 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
 		for (int i = 0; i < longPath.size()-1; i++){
 			if(longPath.get(i).angleTo(longPath.get(i+1))!=lastAngle){
 				lastAngle = longPath.get(i).angleTo(longPath.get(i+1));
-				shortPath.add(longPath.get(i));		
-			}
+				shortPath.add(longPath.get(i));	}
 	    }
 		shortPath.add(longPath.get(longPath.size()-1));
-		return shortPath;
-	}
+		return shortPath; }
     
-    
-    
-    private List<Node> getPath(Node currentNode){
+     /** 
+     * J: get the path for live node
+     * @param liveNode
+     * @return a path (list of nodes)
+     */ 
+    private List<Node> getPath(Node liveNode){
         List<Node> path = new ArrayList<Node>();
-        path.add(currentNode);
+        path.add(liveNode);
         Node parent;
-        while ((parent = currentNode.getParent()) != null) {
+        while ((parent = liveNode.getParentNode()) != null) {
             path.add(0, parent);
-            currentNode = parent;
+            liveNode = parent;
         }
         return path;
     }
-
-    private void addAdjacentNodes(Node currentNode){
-        addAdjacentUpperRow(currentNode);
-        addAdjacentMiddleRow(currentNode);
-        addAdjacentLowerRow(currentNode);
+     
+     /**
+     * specifies middle nodes (the two nodes to the left and right of the live node) and initiates an audit on them both
+     * @param liveNode
+     */ 
+    private void updateMid(Node liveNode){
+        int x=liveNode.getX();
+        int y=liveNode.getY();
+        int midRow = x;
+        if(y-1 >= 0) {
+            auditNode(liveNode, y-1, midRow, this.xyMoveCost);}
+        if(y+1 < map.getMap()[0].length) {
+            auditNode(liveNode, y+1, midRow, this.xyMoveCost);}
     }
-   
-    private void addAdjacentLowerRow(Node currentNode){
-        int row = currentNode.getRow();
-        int col = currentNode.getCol();
-        int lowerRow = row + 1;
-        if (lowerRow < map.getMap().length) {
-            if (col - 1 >= 0) {
-                checkNode(currentNode, col - 1, lowerRow, this.diagonalCost); // Comment this line if diagonal movements are not allowed
-            }
-            if (col + 1 < map.getMap()[0].length) {
-                checkNode(currentNode, col + 1, lowerRow, this.diagonalCost); // Comment this line if diagonal movements are not allowed
-            }
-            checkNode(currentNode, col, lowerRow, this.hvCost);
+     
+     /**
+     * specifies the below nodes (the three nodes below the live node) and initiates an audit on them
+     * @param liveNode
+     */ 
+    private void updateBelow(Node liveNode){
+        int x=liveNode.getX();
+        int y=liveNode.getY();
+        int belowRow = x+1;
+        if (belowRow <map.getMap().length) {
+            if(y-1 >= 0) {
+                auditNode(liveNode, y-1, belowRow, this.diagonalMoveCost); }
+            if(y+1 <map.getMap()[0].length) {
+                auditNode(liveNode, y+1, belowRow, this.diagonalMoveCost); }
+            auditNode(liveNode, y, belowRow, this.xyMoveCost);
         }
     }
-   
-    private void addAdjacentMiddleRow(Node currentNode){
-        int row = currentNode.getRow();
-        int col = currentNode.getCol();
-        int middleRow = row;
-        if (col - 1 >= 0) {
-            checkNode(currentNode, col - 1, middleRow, this.hvCost);
-        }
-        if (col + 1 < map.getMap()[0].length) {
-            checkNode(currentNode, col + 1, middleRow, this.hvCost);
-        }
-    }
-   
-    private void addAdjacentUpperRow(Node currentNode){
-        int row = currentNode.getRow();
-        int col = currentNode.getCol();
-        int upperRow = row - 1;
-        if (upperRow >= 0) {
-            if (col - 1 >= 0) {
-                checkNode(currentNode, col - 1, upperRow, this.diagonalCost); // Comment this if diagonal movements are not allowed
-            }
-            if (col + 1 < map.getMap()[0].length) {
-                checkNode(currentNode, col + 1, upperRow, this.diagonalCost); // Comment this if diagonal movements are not allowed
-            }
-            checkNode(currentNode, col, upperRow, this.hvCost);
+	
+     /**
+     * specifies the top nodes (the three nodes above the live node) and initiates an audit on them
+     * @param liveNode
+     */ 
+    private void updateTop(Node liveNode){
+        int x = liveNode.getX();
+        int y = liveNode.getY();
+        int topRow = x - 1;
+        if (topRow >= 0) {
+            if(y-1 >= 0) {
+                auditNode(liveNode, y - 1, topRow, this.diagonalMoveCost);}
+            if(y+1 < map.getMap()[0].length) {
+                auditNode(liveNode, y + 1, topRow, this.diagonalMoveCost);}
+            auditNode(liveNode, y, topRow, this.xyMoveCost);
         }
     }
-   
-    private void checkNode(Node currentNode, int col, int row, int cost){
-        Node adjacentNode = map.getMap()[row][col];
-        if (!adjacentNode.isBlock() && !this.closedSet.contains(adjacentNode)) {
-            if (!this.openList.contains(adjacentNode)) {
-                adjacentNode.setNodeData(currentNode, cost);
-                this.openList.add(adjacentNode);
+	
+     /**
+     * J: audit a given adjacent node to the live node. Check that its not in the closed list or that it is offline
+     * on the node network. Then if it is not in the open list, set its state (f, g, h) and add it to the openlist.
+     * else, if it is already in the open list, check that the cost has not changed. If the cost has changed, remove it
+     * from the open list and add the correct node back.
+     * @param liveNode
+     * @param x
+     * @param y
+     * @param cost
+     */ 
+    private void auditNode(Node liveNode, int x, int y, int cost){
+        Node borderingNode = map.getMap()[y][x];
+        if(!this.listClosed.contains(borderingNode) && !borderingNode.isNodeOffline()) {
+            if(!this.listOpen.contains(borderingNode)) {
+                borderingNode.setState(liveNode, cost);
+                this.listOpen.add(borderingNode);
             } else {
-                boolean changed = adjacentNode.checkBetterPath(currentNode, cost);
-                if (changed) {
-                    // Remove and Add the changed node, so that the PriorityQueue can sort again its
-                    // contents with the modified "finalCost" value of the modified node
-                    this.openList.remove(adjacentNode);
-                    this.openList.add(adjacentNode);
+                boolean hasBeenUpdated = borderingNode.isThereAShorterRoute(liveNode, cost);
+                if(hasBeenUpdated) {
+                    this.listOpen.remove(borderingNode);
+                    this.listOpen.add(borderingNode);
                 }
             }
         }
