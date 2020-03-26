@@ -1,22 +1,31 @@
 package localization;
-//Main contributors to concepts/code: Brandon, James, Avinash, Sean.
-//James's comments marked with @J
+/**
+* This class implements localization functionality. Specific detail is given within method descriptions
+* rather than here, James's comments marked with J:
+* 
+* @author Brandon Cardillo, James Burroughs, Avinash Patel, Seokhwan Jung
+*/
+
 public class TheStrip { 
-	//@J we define an array to store as sequence of bayesian probablities for the locations on the strip.
+	/**
+	* J: we define an array to store as sequence of bayesian probablities for the locations on the strip.
+	*/
     private double[] proababilityHeIsAt;
+	/**
+	* J: we define an array to store locations on the strip.
+	*/
     private final boolean[] squareIsBlue;
+        /**
+	 * J: here we define another boolean array for the strip itself. The strip is encoded within boolean values 
+         * i.e. moving each small block unit from one end to another (around 3cm), we ask the question "is the 
+         * strip blue here?" If the answer is true (i.e. it the strip is blue) we append true to the array (resulting in
+         * the below being initialised within the class constructor).
 
+         * The two arrays above throughout should be seen to correspond to one another, i.e. we are defining the physical 
+         * strip itself encoded with booleans and a corresponding array of an identical length with probabilties that
+         * relate to those positions.
+	 */
     public TheStrip() {
-
-        //@J we define another boolean array for the strip itself. The strip is encoded within boolean values 
-        // i.e. moving each small block unit from one end to another (around 3cm), we ask the question "is the 
-        // strip blue here?" If the answer is true (i.e. it the strip is blue) we append true to the array (resulting in
-        // the below being initialised within the class constructor).
-
-        // The two arrays above throughout should be seen to correspond to one another, i.e. we are defining the physical 
-        // strip itself encoded with booleans and a corresponding array of an identical length with probabilties that
-        // relate to those positions.
-
     	squareIsBlue = new boolean[] {
              false, false, true, true ,true, false, true, true, false, false,
                 true, true, true, false, true, true, false, false, true, true, 
@@ -47,9 +56,14 @@ public class TheStrip {
             proababilityHeIsAt[i] = 1.0 / (squareIsBlue.length - 9);
         }
     }
-    // @J This method sets the bayesian probabilities for each index in the array as wall-z physically moves/iterates through 
-    // the strip observing whether it is blue or not with a light sensor, it then compares what it sees to the the known encoded
-    // boolean array of the strip. Using bayesian mathematics the probabilties for each location in the probability array are deduced.
+	
+	/**
+	* J: This method sets the bayesian probabilities for each index in the array as wall-z physically moves/iterates through 
+        * the strip observing whether it is blue or not with a light sensor, it then compares what it sees to the the known encoded
+        * boolean array of the strip. Using bayesian mathematics the probabilties for each location in the probability array are deduced.
+	* @param wallzGoesAhead
+	* @param wallzSensedBlue
+	*/
     public void updateProbablityMap(boolean wallzGoesAhead, boolean wallzSensedBlue) {
         double normalisationCoefficient = 0;
         double hardwarePrecision = 0.94;
@@ -80,21 +94,32 @@ public class TheStrip {
         }
         normalizeValues(normalisationCoefficient);
     }
-    //@J it is required that for the array of bayesian probabilities, the total of all must sum to 1.
-    // as the robot moves through the strip, and probabilities are updated, they must also be normalised
-    // (still all add to total of 1). This function helps to accomplish this, by iterating through the elements in the
-    // bayesian probability array, and dividing them by the normalization value. The normalization value is derived
-    // from the above updateProbabilityMap method.
+	
+    /**
+    * J: it is required that for the array of bayesian probabilities, the total of all must sum to 1.
+    * as the robot moves through the strip, and probabilities are updated, they must also be normalised
+    * (still all add to total of 1). This function helps to accomplish this, by iterating through the elements in the
+    * bayesian probability array, and dividing them by the normalization value. The normalization value is derived
+    * from the above updateProbabilityMap method.
+    * @param normalizationCoefficient
+    */
     private void normalizeValues(double normalizationCoefficient) {
         for(int i = 0; i < proababilityHeIsAt.length; ++i) {
             proababilityHeIsAt[i] /=normalizationCoefficient;
         }
     }
-    
+    /**
+    * Gets the probability of the likely position
+    * @return probablity value (double)
+    */
     public double getProbabilityOfLikelyPosition() {
         return proababilityHeIsAt[getLikelyPosition()];
     }
-    
+	
+    /**
+    * Gets the likly position
+    * @return position
+    */
     public int getLikelyPosition() {
         double limit = proababilityHeIsAt[proababilityHeIsAt.length-1];
         int position = proababilityHeIsAt.length-1;
@@ -106,11 +131,18 @@ public class TheStrip {
         }
         return position;
     }
-  //@J getProb returns the probability for a location of the probability array specificied by passing an index.
+	
+    /**
+    * getProb returns the probability for a location of the probability array specificied by passing an index.
+    * @return probablity value (double)
+    */
     public double getProb(int pos) {
         return proababilityHeIsAt[pos-1];
     }
-    
+	
+    /**
+    * resetProbs resets the probabilities
+    */
     public void resetProbs(){
         for(int i = 0; i < 9; ++i){
             proababilityHeIsAt[i] = 0;
