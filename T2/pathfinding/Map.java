@@ -24,7 +24,7 @@ import java.util.List;
 * map/grid node network. His starting node is noted and used to calculate an efficient route to any online node on the map
 * Using various starting (Wall-Z current positions)and finishing points Wall-Z is able calculate a path with A* and 
 * traverse/interact with the arena as required using Brandon's navigation classes.
-* @author James Burroughs, Seokhwan Jung
+* @author Seokhwan Jung, James Burroughs, Avinash Patel, Brandon Cardillo
 */
 public class Map {
 	private Node[][] mapArea;
