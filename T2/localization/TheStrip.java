@@ -1,7 +1,8 @@
 package localization;
 /**
 * This class implements localization functionality. Specific detail is given within method descriptions
-* rather than here, James's comments marked with J:
+* rather than here, James's comments marked with J. Will be expanded and explained in pseudocode in presentation
+* for algorithm deliniation.
 * 
 * @author Brandon Cardillo, James Burroughs, Avinash Patel, Seokhwan Jung
 */
