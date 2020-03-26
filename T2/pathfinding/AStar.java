@@ -38,8 +38,8 @@ navigator functionality (using LejOS inbuilts such as waypoints that relate to p
 algorithm to be used practically to traverse the course.
 
 Functionality:
-Blocked nodes specified within the map class - (Nodes can be dynamically blocked/made innaccessible on the grid/map depending on what Wall-z knows)
-Blocked nodes are employed to prevent the EV3 from entering/colliding with 'out of bounds areas' (such as the walls) and
+Offline nodes specified within the map class - (Nodes can be dynamically set offline/made innaccessible on the grid/map depending on what Wall-z knows)
+Offline nodes are employed to prevent the EV3 from entering/colliding with 'out of bounds areas' (such as the walls) and
 to prevent collision with objects. The robot should perform A* situationally and intelligently depending on information 
 it deduces/obtains while completing the task (such as its position from localising on the localization strip, its knowledge
 of variable obstacle locations from reading the colour strip or from being informed at the beginning of the task).
@@ -48,11 +48,16 @@ of variable obstacle locations from reading the colour strip or from being infor
 
 public class AStar {
 //---------------------------------------------------------------------------------------------------
-//the horizontal or vertical cost of a generic diagonal movement from one node to another
+    
+     /**
+     * J: This integer is the horizontal or vertical cost of a generic diagonal movement from one node to another
+     */
     private int xyMoveCost = 10; 
-//the diagonal cost of a generic diagonal movement from one node to another
+     /**
+     * J:This integer is the diagonal cost of a generic diagonal movement from one node to another
+     */
     private int diagonalMoveCost = 14;
-    //@J Note that this need not correlate with actual physical measurements of distance and instead
+    // J: Note that this need not correlate with actual physical measurements of distance and instead
     //is simply the sides of a triangle (horizontal, vertical and diagonal) retrieved using
     //pythagoreas theorem. During testing, we altered these numbers artificially to encourage the
     //robot to prefer either xy or diagonal movements and noted its behaviour. Inaccuracies with
@@ -60,20 +65,30 @@ public class AStar {
     //more error simply depending upon whether they involved more turning (note that a diagonal move
     //usually requires Wall-Z to move 45 degrees whereas a horizontal often requires 90 degrees.
 
-   //Now we initialise an open list (priority Queue dst) and closed set as require by the A* algo.
-   //A map using the map class inside the project is also initialised containing the default arena setup.
+     /**
+     * J: A map using the map class inside the project is also initialised containing the default arena setup.
+     * Now we initialise an open list (priority Queue dst) and closed set as require by the A* algo.
+     */
     private Map map;
-    //Open list stores possibilities, closed stores all expanded nodes.
+     /**
+     * J: Open list stores all possibilities for nodes where F cost has been calculated, 
+     */
     private PriorityQueue<Node> listOpen;
+     /**
+     * J: Closed list stores all expanded nodes.
+     */
     private Set<Node> listClosed;
 
 	
 //---------------------------------------------------------------------------------------------------
-/*@J AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
-and so when the robot needs to path find, it uses this map. The map changes intelligently depending on what Wall-Z can
-deduce from the environment allowing a multitude of potential routes depending on where Wall-Z is moving from, where
-he is moving to, and what he knows about the arena (e.g. obstacle locations from reading colour strips).
-*/
+// 
+
+     /**
+     * J: AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
+     *and so when the robot needs to path find, it uses this map. The map changes intelligently depending on what Wall-Z can
+     *deduce from the environment allowing a multitude of potential routes depending on where Wall-Z is moving from, where
+     * he is moving to, and what he knows about the arena (e.g. obstacle locations from reading colour strips).
+     */
     public AStar(Map map) {
     	this.map = map;
     	//PriorityQueue with initial capacity 300 that orders the nodes by comparing their FCost
@@ -88,31 +103,43 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
     	
 	//METHODS
   //---------------------------------------------------------------------------------------------------
-//@J The bringWaypointOffline method takes a Waypoint object as parameter and takes this singular node from the map offline
-    //Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
+     /**
+     * J: The bringWaypointOffline method takes a Waypoint object as parameter and takes this singular node from the map offline
+     * Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
+     */ 
     public void bringWaypointOffline(Waypoint addWayPoint){
     	this.map.setNodeOffline(new Node((int)addWayPoint.getY(), (int)addWayPoint.getX()));
     }
-    
-//@J The same explanation applies as above except bringPathOffline takes a Path object as parameter and
-//for the nodes encoded within this path puts them offline on the map node network.
+	
+    /**
+     * The same explanation applies as above except bringPathOffline takes a Path object as parameter and
+     * for the nodes encoded within this path puts them offline on the map node network.
+     */ 
     public void bringPathOffline(Path path){
     	for(Waypoint point : path){
     		this.map.setNodeOffline(new Node((int)point.getY(), (int)point.getX()));
     	}
     }
-    // Same explanation as above however this puts a given waypoint back online.
+	
+     /**
+     * Same explanation as bringWaypointOffline however this puts a given waypoint back online.
+     */ 
     public void bringWaypointOnline(Waypoint removeWayPoint){
     	this.map.bringNodeOnline(new Node((int)removeWayPoint.getY(), (int)removeWayPoint.getX()));
     }
-    // Same explanation as above however this unblocks a given path.
+	
+    /**
+     * Same explanation as above however this brings a given path online
+     */ 
     public void bringPathOnline(Path path){
     	for(Waypoint point : path){
     		this.map.bringNodeOnline(new Node((int)point.getY(), (int)point.getX()));
     	}
     }
 	
-//Returns the path generated by A*. Start and destination nodes are specified from waypoints.
+     /**
+     * J: Returns the path generated by A*. Start and destination nodes are specified from waypoints.
+     */ 
     public Path getPath(Waypoint startWaypoint, Waypoint destinationWaypoint){
     	Node start = new Node((int)startWaypoint.getY(), (int)startWaypoint.getX());
     	Node destination = new Node((int)destinationWaypoint.getY(), (int)destinationWaypoint.getX());
@@ -136,7 +163,10 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
         return new Path();
     }
     
-    //Converts a list of nodes to a path of Waypoints.
+     /**
+     * 
+     * J: Converts a list of nodes to a path of Waypoints.
+     */ 
     private Path listToPath(List<Node> list){
     	Path path = new Path();
     	for(Node node : list) {
@@ -144,10 +174,12 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
     	}
 		return path;
     }
-    
-    //@J This method shorten the path (removes nodes), i.e. if an angle change has not occurred
-    // from node A to B to C, node B is redundant and can be safely removed for use with the navigator (so the robot only
-    // stops when changing direction).
+	
+     /**
+     * J: This method shorten the path (removes nodes), i.e. if an angle change has not occurred
+     * from node A to B to C, node B is redundant and can be safely removed for use with the navigator (so the robot only
+     * stops when changing direction).
+     */
     private Path shortenPath(Path longPath){
 		if(longPath.isEmpty()){
 			return longPath;
@@ -165,7 +197,9 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
 		shortPath.add(longPath.get(longPath.size()-1));
 		return shortPath; }
     
-    //get the path for live node
+     /** 
+     * J: get the path for live node
+     */ 
     private List<Node> getPath(Node liveNode){
         List<Node> path = new ArrayList<Node>();
         path.add(liveNode);
@@ -176,8 +210,10 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
         }
         return path;
     }
-    
-   //specifies middle nodes (the two nodes to the left and right of the live node) and initiates an audit on them both
+     
+     /**
+     * specifies middle nodes (the two nodes to the left and right of the live node) and initiates an audit on them both
+     */ 
     private void updateMid(Node liveNode){
         int x=liveNode.getX();
         int y=liveNode.getY();
@@ -187,7 +223,10 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
         if(y+1 < map.getMap()[0].length) {
             auditNode(liveNode, y+1, midRow, this.xyMoveCost);}
     }
-    //specifies the below nodes (the three nodes below the live node) and initiates an audit on them
+     
+     /**
+     * specifies the below nodes (the three nodes below the live node) and initiates an audit on them
+     */ 
     private void updateBelow(Node liveNode){
         int x=liveNode.getX();
         int y=liveNode.getY();
@@ -200,7 +239,11 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
             auditNode(liveNode, y, belowRow, this.xyMoveCost);
         }
     }
-    //specifies the top nodes (the three nodes above the live node) and initiates an audit on them
+	
+     /**
+     * specifies the top nodes (the three nodes above the live node) and initiates an audit on them
+     * 
+     */ 
     private void updateTop(Node liveNode){
         int x = liveNode.getX();
         int y = liveNode.getY();
@@ -213,11 +256,13 @@ he is moving to, and what he knows about the arena (e.g. obstacle locations from
             auditNode(liveNode, y, topRow, this.xyMoveCost);
         }
     }
-   
-	//audit a given adjacent node to the live node. Check that its not in the closed list or that it is offline
-	//on the node network. Then if it is not in the open list, set its state (f, g, h) and add it to the openlist.
-	// else, if it is already in the open list, check that the cost has not changed. If the cost has changed, remove it
-	// from the open list and add the correct node back.
+	
+     /**
+     * J: audit a given adjacent node to the live node. Check that its not in the closed list or that it is offline
+     * on the node network. Then if it is not in the open list, set its state (f, g, h) and add it to the openlist.
+     * else, if it is already in the open list, check that the cost has not changed. If the cost has changed, remove it
+     * from the open list and add the correct node back.
+     */ 
     private void auditNode(Node liveNode, int x, int y, int cost){
         Node borderingNode = map.getMap()[y][x];
         if(!this.listClosed.contains(borderingNode) && !borderingNode.isNodeOffline()) {
