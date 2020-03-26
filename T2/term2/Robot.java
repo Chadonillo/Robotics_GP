@@ -37,7 +37,7 @@ import lejos.robotics.chassis.*;
  *  	  the given tasks. It uses other classes functionality to achieve its goals, classes such as;
  *  	  MovePilot, GyroPoseProvider, CustomNavigator, AStar and TheStrip.
  *  	  (Read the method annotations below for accurate descriptions of functionality.) 
- * @author Brandon Cardillo, Sean.
+ * @author Brandon Cardillo, Seokhwan Jung
  */
 public class Robot{
 	/**
