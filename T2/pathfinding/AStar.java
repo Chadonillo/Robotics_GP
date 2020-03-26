@@ -1,20 +1,21 @@
  package pathfinding;
 
-//Main contributors: James and Brandon
-//@J The A* class was edited by Brandon to make it compatible with waypoints (functionality within LejOS and hence his navigator class).
-// Before this, it was an independent implementation of the A* algorithm functional acting with the node class. More into these
-// edits will be given in the descriptions below.
-// An overview is here:
-// The LejOS waypoint implementation simply involves objects of type waypoint with some useful methods associated. When building
-// we decided to utilise these waypoints within the navigator class. The waypoint and nodes correspond exactly to each other, 
-// we simply convert regularly perform simple conversions between them to save time. For example, a node on the grid at position
-// (3, 9) corresponds to a waypoint at position (3, 9). To convert waypoint to node, we call the method on the waypoint that 
-// returns the integer value of its x and y coordinates respectively and construct a corresponding node.
-// The methods in this class generally take waypoints from Brandon's classes as parameters, rapidly initialise the relevant nodes
-// using the node class, and then perform the A* pathfinding.
-// Potentially, with more time, we could have rewrote this for cleaner code however the task was deemed to be a non priority given
-// the efficiency of conversion and the suggestion from experimental trials that this was a non-issue.
-
+/**Main contributors: James and Brandon
+* J: The A* class was edited by Brandon to make it compatible with waypoints (functionality within LejOS and hence his navigator class).
+* Before this, it was an independent implementation of the A* algorithm functional acting with the node class. More into these
+* edits will be given in the descriptions below.
+* An overview is here:
+* The LejOS waypoint implementation simply involves objects of type waypoint with some useful methods associated. When building
+* we decided to utilise these waypoints within the navigator class. The waypoint and nodes correspond exactly to each other, 
+* we simply convert regularly perform simple conversions between them to save time. For example, a node on the grid at position
+* (3, 9) corresponds to a waypoint at position (3, 9). To convert waypoint to node, we call the method on the waypoint that 
+* returns the integer value of its x and y coordinates respectively and construct a corresponding node.
+* The methods in this class generally take waypoints from Brandon's classes as parameters, rapidly initialise the relevant nodes
+* using the node class, and then perform the A* pathfinding.
+* Potentially, with more time, we could have rewrote this for cleaner code however the task was deemed to be a non priority given
+* the efficiency of conversion and the suggestion from experimental trials that this was a non-issue.
+* @author James Burroughs, Brandon Cardillo
+*/
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
