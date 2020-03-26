@@ -1,4 +1,4 @@
-package demo;
+package tests;
 import java.util.Iterator;
 
 import lejos.hardware.Button;
