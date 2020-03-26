@@ -1,6 +1,6 @@
  package pathfinding;
 
-/**Main contributors: James and Brandon
+/**
 * J: The A* class was edited by Brandon to make it compatible with waypoints (functionality within LejOS and hence his navigator class).
 * Before this, it was an independent implementation of the A* algorithm functional acting with the node class. More into these
 * edits will be given in the descriptions below.
