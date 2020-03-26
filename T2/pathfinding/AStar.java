@@ -26,7 +26,6 @@ import java.util.Comparator;
 import lejos.robotics.navigation.Waypoint;
 import lejos.robotics.pathfinding.Path;
 
-//---------------------------------------------------------------------------------------------------
 /*@J The algorithm chosen for pathfinding is the A* search algorithm. A* returns a path of nodes that correspond to waypoints that 
 correspond to the physical course itself. This implementation models a grid (map) that does not use physical measurements
 yet still proportionally links to the physical course environment. 
@@ -44,11 +43,9 @@ to prevent collision with objects. The robot should perform A* situationally and
 it deduces/obtains while completing the task (such as its position from localising on the localization strip, its knowledge
 of variable obstacle locations from reading the colour strip or from being informed at the beginning of the task).
 */
-//---------------------------------------------------------------------------------------------------
 
 public class AStar {
-//---------------------------------------------------------------------------------------------------
-    
+
      /**
      * J: This integer is the horizontal or vertical cost of a generic diagonal movement from one node to another
      */
@@ -79,9 +76,6 @@ public class AStar {
      */
     private Set<Node> listClosed;
 
-	
-//---------------------------------------------------------------------------------------------------
-// 
 
      /**
      * J: AStar takes an object of type map when being constructed. The Map class encodes information about the physical arena,
@@ -102,8 +96,6 @@ public class AStar {
     	this(new Map());
     }
     	
-	//METHODS
-  //---------------------------------------------------------------------------------------------------
      /**
      * J: The bringWaypointOffline method takes a Waypoint object as parameter and takes this singular node from the map offline
      * Waypoints contain the X and Y coordinate value that can be used directly as an integer value.
